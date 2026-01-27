@@ -1,8 +1,6 @@
 <!-- =========================
-DROP-IN FILE #2: rif_no_procore.html
-No-Procore RIF page (firebase-ready localStorage adapter)
-Includes button to go back to Standard RIF (rif.html)
-(put in repo as rif_no_procore.html)
+DROP-IN: rif_no_procore.html (Standard RIF button REMOVED)
+Replace your existing rif_no_procore.html with this.
 ========================= -->
 <!doctype html>
 <html lang="en">
@@ -216,10 +214,6 @@ Includes button to go back to Standard RIF (rif.html)
       <div class="right-actions">
         <span class="chip" id="rifIdChip">RIF: —</span>
         <span class="chip" id="saveChip">Not saved</span>
-
-        <!-- Button back to Standard RIF -->
-        <a class="btn secondary" id="standardRifBtn" href="#">Standard RIF</a>
-
         <button class="btn" id="saveBtn" type="button">Save</button>
         <button class="btn secondary" id="printBtn" type="button">Export PDF</button>
       </div>
@@ -349,23 +343,6 @@ Includes button to go back to Standard RIF (rif.html)
   const eqLabel = document.getElementById("eqLabel");
   if (eqLabel) eqLabel.textContent = eq ? `Mission Critical Program • Equipment: ${eq}` : "Mission Critical Program";
 
-  // Button: back to Standard RIF (rif.html) preserving eq + rif
-  (function(){
-    const btn = document.getElementById("standardRifBtn");
-    if(!btn) return;
-
-    const eqVal = (qs.get("eq") || "").trim();
-    const rifVal = (qs.get("rif") || "").trim();
-
-    let url = "rif.html"; // standard launcher/redirect
-
-    const p = new URLSearchParams();
-    if(eqVal) p.set("eq", eqVal);
-    if(rifVal) p.set("rif", rifVal);
-
-    btn.href = p.toString() ? `${url}?${p.toString()}` : url;
-  })();
-
   // Role rank (align with your roles)
   const ROLE_RANK = { viewer:0, tech:1, foreman:2, superintendent:3, admin:4 };
   function getCurrentRole(){
@@ -410,7 +387,7 @@ Includes button to go back to Standard RIF (rif.html)
     return `nexus/equipment/${(eqVal||"NO_EQ")}/rifs/${(rifId||"NO_RIF")}`;
   }
 
-  // ========= RIF definition (from your sheet) =========
+  // ========= RIF definition =========
   const FIELD_DEFS = [
     ["1.1","Serial Number","text"],
     ["1.2","Date of Manufacture","date"],
@@ -447,7 +424,7 @@ Includes button to go back to Standard RIF (rif.html)
     ["2.9","RIF checks complete and observation created for any identified issues."]
   ];
 
-  // ========= State (firebase-ready doc) =========
+  // ========= State =========
   let state = {
     meta: {
       schema: "rif_v1",
@@ -495,8 +472,7 @@ Includes button to go back to Standard RIF (rif.html)
       history.replaceState(null, "", `${location.pathname}?${qs.toString()}`);
     }
     rifIdChip.textContent = `RIF: ${state.meta.rifId}`;
-    const dk = getDocKey(eq, state.meta.rifId);
-    docKeyPreview.textContent = dk;
+    docKeyPreview.textContent = getDocKey(eq, state.meta.rifId);
   }
 
   function escapeHtml(s){
