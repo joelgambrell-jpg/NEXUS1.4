@@ -51,6 +51,11 @@
   .muted{opacity:.8;}
   .pagebreak{page-break-after:always;}
 
+  .link a{color:#0a0f24;text-decoration:underline;font-weight:900;}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.10);font-weight:900;}
+  .ok{color:#0a7a2d;}
+  .bad{color:#a30000;}
+
   @media print{
     body{background:#fff !important;color:#000 !important;}
     .nx-header-wrap,.topbar,.meta,.hint,.actions{display:none !important;}
@@ -58,6 +63,7 @@
     .card{background:#fff !important;border:none !important;backdrop-filter:none !important;padding:0;}
     .report{border:none !important;border-radius:0 !important;}
     .pagebreak{page-break-after:always;}
+    .link a{color:#000 !important;}
   }
 </style>
 
@@ -143,7 +149,7 @@
     </div>
 
     <div class="hint">
-      This generates a single printable package that includes: RIF (status), Megohmmeter Test Log (Line/Load), <b>Equipment Megohmmeter Test (If Applicable)</b>, Torque Log (rows + tilt), L2 (status/link), and Pre-FOD (status/link).<br>
+      This generates a single printable package that includes: RIF (status + link to <b>No-Procore</b> RIF), Megohmmeter Test Log (Line/Load), <b>Equipment Megohmmeter Test (If Applicable)</b>, Torque Log (rows + tilt), L2 (status/link), and Pre-FOD (status/link).<br>
       Procore upload is manual in this pre-Firebase build: export to PDF, then open the Procore page and attach the PDF.
       Firebase migration hook is included in code as a placeholder.
     </div>
@@ -198,6 +204,17 @@
     return `<div class="k">${safe(k)}</div><div>${safe(v||'')}</div>`;
   }
 
+  function kvRowLink(k, href, label){
+    const url = (href||"").trim();
+    if(!url) return `<div class="k">${safe(k)}</div><div class="muted">(not set)</div>`;
+    const text = label || url;
+    return `<div class="k">${safe(k)}</div><div class="link"><a href="${safe(url)}" target="_blank" rel="noopener noreferrer">${safe(text)}</a></div>`;
+  }
+
+  function statusPill(isOk, text){
+    return `<span class="pill ${isOk?'ok':'bad'}">${safe(text)}</span>`;
+  }
+
   function hasAnyFilledRow(rows){
     const out = (Array.isArray(rows)?rows:[]);
     return out.some(r => Object.values(r||{}).some(x => String(x||'').trim()!=='' ));
@@ -248,7 +265,6 @@
       `;
     };
 
-    // Support either "rows" or "equipRows" (in case naming differs between builds)
     const rows = data.rows || data.equipRows || [];
     return `
       <div class="kv">
@@ -298,8 +314,27 @@
     `;
   }
 
-  function renderStatusLine(label, statusText, extra){
-    return `<div><b>${safe(label)}:</b> ${safe(statusText)}${extra?` <span class="muted">(${safe(extra)})</span>`:''}</div>`;
+  function renderStatusLine(label, isOk, linkHref){
+    const pill = statusPill(isOk, isOk ? 'COMPLETE' : 'NOT COMPLETE');
+    const link = linkHref ? ` <span class="muted">(<a href="${safe(linkHref)}" target="_blank" rel="noopener noreferrer">open</a>)</span>` : '';
+    return `<div><b>${safe(label)}:</b> ${pill}${link}</div>`;
+  }
+
+  // Find the latest saved RIF doc (localStorage keys: nexus/equipment/<EQ>/rifs/<RIF-ID>)
+  function findLatestRif(eqId){
+    const prefix = `nexus/equipment/${eqId||'NO_EQ'}/rifs/`;
+    const out = [];
+    for (let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith(prefix)) continue;
+      const doc = readJSON(k);
+      if (!doc || typeof doc !== 'object') continue;
+      const updated = doc?.meta?.updatedAt || doc?.meta?.createdAt || '';
+      const t = updated ? Date.parse(updated) : 0;
+      out.push({ key:k, doc, t });
+    }
+    out.sort((a,b) => (b.t||0) - (a.t||0));
+    return out[0] || null;
   }
 
   function buildReport(){
@@ -318,7 +353,10 @@
 
     const torque = readJSON(`nexus_${eq||'NO_EQ'}_torque_log_v1`);
 
-    const rifLink = eq ? `form.html?id=rif&eq=${encodeURIComponent(eq)}` : 'form.html?id=rif';
+    // LINKS (what the user expects)
+    const rifNoProcoreLink = eq ? `rif_no_procore.html?eq=${encodeURIComponent(eq)}` : 'rif_no_procore.html';
+    const rifLandingLink = eq ? `form.html?id=rif&eq=${encodeURIComponent(eq)}` : 'form.html?id=rif';
+
     const megLink = eq ? `meg_log.html?eq=${encodeURIComponent(eq)}` : 'meg_log.html';
     const equipMegLink = eq ? `meg_log.html?mode=equipment&eq=${encodeURIComponent(eq)}` : 'meg_log.html?mode=equipment';
     const torqueLink = eq ? `torque_log.html?eq=${encodeURIComponent(eq)}` : 'torque_log.html';
@@ -333,6 +371,10 @@
         hasAnyFilledRow(equipRows)
       );
 
+    // RIF: discover latest saved RIF doc (optional, but helps validate the right page)
+    const rifLatest = eq ? findLatestRif(eq) : null;
+    const rifLatestId = (rifLatest && rifLatest.doc && rifLatest.doc.meta && rifLatest.doc.meta.rifId) ? rifLatest.doc.meta.rifId : "";
+
     reportEl.innerHTML = `
       ${sectionHeader('NEXUS Package', eq ? `Equipment: ${eq}` : '')}
       <div class="kv">
@@ -342,12 +384,12 @@
       </div>
 
       <h3>Completion Summary</h3>
-      ${renderStatusLine('RIF', isDone('rif') ? 'COMPLETE' : 'NOT COMPLETE', rifLink)}
-      ${renderStatusLine('Megohmmeter (Line/Load)', isDone('meg') ? 'COMPLETE' : 'NOT COMPLETE', megLink)}
-      ${renderStatusLine('Equipment Meg (If Applicable)', equipMegHasData ? 'COMPLETE' : 'NOT COMPLETE', equipMegLink)}
-      ${renderStatusLine('Torque', isDone('torque') ? 'COMPLETE' : 'NOT COMPLETE', torqueLink)}
-      ${renderStatusLine('L2', isDone('l2') ? 'COMPLETE' : 'NOT COMPLETE')}
-      ${renderStatusLine('Pre-FOD', isDone('prefod') ? 'COMPLETE' : 'NOT COMPLETE')}
+      ${renderStatusLine('RIF (No-Procore)', isDone('rif'), rifNoProcoreLink)}
+      ${renderStatusLine('Megohmmeter (Line/Load)', isDone('meg'), megLink)}
+      ${renderStatusLine('Equipment Meg (If Applicable)', equipMegHasData, equipMegLink)}
+      ${renderStatusLine('Torque', isDone('torque'), torqueLink)}
+      ${renderStatusLine('L2', isDone('l2'))}
+      ${renderStatusLine('Pre-FOD', isDone('prefod'))}
 
       <div class="pagebreak"></div>
 
@@ -366,11 +408,13 @@
 
       <div class="pagebreak"></div>
 
-      ${sectionHeader('RIF / L2 / Pre-FOD', 'Status + reference links (forms are external in this pre-Firebase build)')}
+      ${sectionHeader('RIF / L2 / Pre-FOD', 'Status + reference links (pre-Firebase build)')}
       <div class="kv">
-        ${kvRow('RIF Page', rifLink)}
-        ${kvRow('L2 Page', eq ? `form.html?id=l2&eq=${encodeURIComponent(eq)}` : 'form.html?id=l2')}
-        ${kvRow('Pre-FOD Page', eq ? `form.html?id=prefod&eq=${encodeURIComponent(eq)}` : 'form.html?id=prefod')}
+        ${kvRowLink('RIF (No-Procore)', rifNoProcoreLink, rifNoProcoreLink)}
+        ${kvRow('Latest saved RIF ID', rifLatestId || '(none found)')}
+        ${kvRowLink('RIF Landing (form.html)', rifLandingLink, rifLandingLink)}
+        ${kvRowLink('L2 Page', eq ? `form.html?id=l2&eq=${encodeURIComponent(eq)}` : 'form.html?id=l2')}
+        ${kvRowLink('Pre-FOD Page', eq ? `form.html?id=prefod&eq=${encodeURIComponent(eq)}` : 'form.html?id=prefod')}
       </div>
       <div style="margin-top:10px" class="muted">
         Note: L2 and Pre-FOD content currently live in external links (SharePoint/Procore) and are not captured as fillable forms in this phase.
