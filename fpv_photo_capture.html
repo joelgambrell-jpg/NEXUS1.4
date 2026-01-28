@@ -1,3 +1,4 @@
+<!-- fpv_photo_capture.html (FULL DROP-IN) -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -7,12 +8,12 @@
 <style>
   :root{--bg:#b60000;--panel:rgba(255,255,255,0.20);--line:rgba(255,255,255,0.20);--accent:#00c2ff;--btn-bg:#0a0f24;--btn-txt:#3ecbff;--ok:#00ff66;}
   *{box-sizing:border-box}
-  html,body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#fff;background:var(--bg);} 
+  html,body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#fff;background:var(--bg);}
   body{background-image:url("transformer.jpg");background-repeat:no-repeat;background-position:center center;background-size:cover;background-attachment:fixed;}
   .nx-header-wrap{background:rgba(0,0,0,0.35);border-bottom:1px solid rgba(255,255,255,0.18);backdrop-filter:blur(8px);}
   .nx-header{max-width:1100px;margin:0 auto;padding:14px 18px;display:flex;align-items:center;}
   .nx-header img{height:54px;width:auto;max-width:100%;object-fit:contain;}
-  .container{max-width:900px;margin:26px auto;padding:22px;background:var(--panel);border:1px solid var(--line);border-radius:18px;backdrop-filter:blur(6px);} 
+  .container{max-width:900px;margin:26px auto;padding:22px;background:var(--panel);border:1px solid var(--line);border-radius:18px;backdrop-filter:blur(6px);}
   h1{margin:0 0 8px;font-size:28px;font-weight:900;}
   .meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:6px 0 14px;}
   .eq{font-weight:900;}
@@ -23,9 +24,9 @@
   textarea{min-height:90px;resize:vertical;}
   .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
   .btn{padding:12px 16px;font-size:15px;font-weight:900;border-radius:999px;color:var(--btn-txt);background:var(--btn-bg);border:2px solid var(--accent);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;user-select:none;}
-  .btn.complete{background:var(--ok)!important;color:#002b14!important;border-color:var(--ok)!important;box-shadow:0 0 14px rgba(0,255,102,.85);} 
+  .btn.complete{background:var(--ok)!important;color:#002b14!important;border-color:var(--ok)!important;box-shadow:0 0 14px rgba(0,255,102,.85);}
   .thumb{margin-top:12px;display:none;}
-  .thumb img{max-width:100%;border-radius:14px;border:1px solid rgba(255,255,255,0.22);} 
+  .thumb img{max-width:100%;border-radius:14px;border:1px solid rgba(255,255,255,0.22);}
   .hint{margin-top:8px;font-size:13px;line-height:1.35;opacity:.92;}
 </style>
 
@@ -42,9 +43,10 @@
   }
 </style>
 
-  <link rel="stylesheet" href="assets/css/nexus-core.css">
+<link rel="stylesheet" href="assets/css/nexus-core.css">
 </head>
-<body>\n
+<body>
+
 <div id="nxSessionBanner" class="nx-session-banner">
   <div class="nx-left">
     <span class="nx-pill">Equipment: <span data-nx-eq>(none)</span></span>
@@ -77,6 +79,7 @@
 <a class="nx-back-btn" href="#" onclick="return NEXUS_back();">← Back</a>
 
 <div class="nx-header-wrap"><div class="nx-header"><img src="nexus.png" alt="NEXUS" /></div></div>
+
 <div class="container">
   <div class="meta">
     <a class="back" id="backLink" href="equipment.html">← Back to Equipment</a>
@@ -100,6 +103,7 @@
 
     <div class="hint">
       Save stores the photo in local browser storage for this equipment (Firebase upload hook included for migration).
+      Saving a photo will automatically mark this step complete.
     </div>
   </div>
 </div>
@@ -108,8 +112,10 @@
 (function(){
   const qs = new URLSearchParams(location.search);
   const eq = (qs.get('eq')||'').trim();
+
   const eqLabel = document.getElementById('eqLabel');
   eqLabel.textContent = eq ? `Equipment: ${eq}` : 'Missing equipment ID (eq)';
+
   const backLink = document.getElementById('backLink');
   backLink.href = eq ? `equipment.html?eq=${encodeURIComponent(eq)}` : 'index.html';
 
@@ -129,6 +135,13 @@
     completeBtn.classList.toggle('complete', done);
   }
 
+  function markComplete(on){
+    if(!eq){ alert('Missing equipment ID (eq).'); return; }
+    if(on) localStorage.setItem(stepKey(), '1');
+    else localStorage.removeItem(stepKey());
+    setCompleteUI();
+  }
+
   function loadSaved(){
     caption.value = localStorage.getItem(notesKey()) || '';
     const dataUrl = localStorage.getItem(photoKey());
@@ -139,7 +152,7 @@
     setCompleteUI();
   }
 
-  photoInput.addEventListener('change', async () => {
+  photoInput.addEventListener('change', () => {
     const file = photoInput.files && photoInput.files[0];
     if(!file) return;
     const reader = new FileReader();
@@ -152,24 +165,31 @@
 
   saveBtn.addEventListener('click', () => {
     if(!eq){ alert('Missing equipment ID (eq).'); return; }
+
+    // Save notes
     localStorage.setItem(notesKey(), caption.value || '');
-    // Persist image if loaded
-    if (thumb.src && thumb.src.startsWith('data:image/')){
+
+    // Save photo if present
+    const hasImage = !!(thumb.src && thumb.src.startsWith('data:image/'));
+    if (hasImage){
       localStorage.setItem(photoKey(), thumb.src);
+      // Auto-complete when a photo is saved
+      markComplete(true);
+      alert('Saved + marked complete.');
+    } else {
+      // Notes-only save: do not mark complete
+      markComplete(false);
+      alert('Saved notes. Add a photo to mark complete.');
     }
 
-    // Firebase hook (stub): upload to Storage + write metadata to Firestore
+    // Firebase hook (stub)
     // window.NEXUS?.firebase?.saveFpvPhoto?.({ eq, dataUrl: thumb.src, notes: caption.value, updatedAt: Date.now() });
-
-    alert('Saved.');
   });
 
+  // Manual override toggle remains available
   completeBtn.addEventListener('click', () => {
-    if(!eq){ alert('Missing equipment ID (eq).'); return; }
     const next = !(localStorage.getItem(stepKey()) === '1');
-    if (next) localStorage.setItem(stepKey(), '1');
-    else localStorage.removeItem(stepKey());
-    setCompleteUI();
+    markComplete(next);
   });
 
   loadSaved();
@@ -193,12 +213,11 @@
 })();
 </script>
 
-
 <footer class="nx-footer">
   © 2026 NEXUS Data Science — Built for ACE Electric — All Rights Reserved
 </footer>
 
-  <script src="assets/js/nexus-core.js"></script>
-  <script src="assets/js/nexus-firebase-bridge.js"></script>
+<script src="assets/js/nexus-core.js"></script>
+<script src="assets/js/nexus-firebase-bridge.js"></script>
 </body>
 </html>
