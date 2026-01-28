@@ -51,10 +51,11 @@
   .muted{opacity:.8;}
   .pagebreak{page-break-after:always;}
 
-  .link a{color:#0a0f24;text-decoration:underline;font-weight:900;}
   .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.10);font-weight:900;}
   .ok{color:#0a7a2d;}
   .bad{color:#a30000;}
+  .link a{color:#0a0f24;text-decoration:underline;font-weight:900;}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;}
 
   @media print{
     body{background:#fff !important;color:#000 !important;}
@@ -149,9 +150,9 @@
     </div>
 
     <div class="hint">
-      This generates a single printable package that includes: RIF (status + link to <b>No-Procore</b> RIF), Megohmmeter Test Log (Line/Load), <b>Equipment Megohmmeter Test (If Applicable)</b>, Torque Log (rows + tilt), L2 (status/link), and Pre-FOD (status/link).<br>
+      This generates a single printable package that includes: RIF (digital No-Procore readout), Megohmmeter Test Log (Line/Load),
+      <b>Equipment Megohmmeter Test (If Applicable)</b>, Torque Log (rows + tilt), L2 (status/link), and Pre-FOD (status/link).<br>
       Procore upload is manual in this pre-Firebase build: export to PDF, then open the Procore page and attach the PDF.
-      Firebase migration hook is included in code as a placeholder.
     </div>
 
     <div id="printArea">
@@ -222,7 +223,6 @@
 
   function renderMeg(data){
     if(!data) return `<div class="muted">No saved Megohmmeter Test Log data found.</div>`;
-
     const mkTable = (rows) => {
       const out = (Array.isArray(rows)?rows:[]).filter(r=>Object.values(r||{}).some(x=>String(x||'').trim()!==''));;
       if(!out.length) return `<div class="muted">(No rows filled)</div>`;
@@ -235,7 +235,6 @@
         </table>
       `;
     };
-
     return `
       <div class="kv">
         ${kvRow('Test Date', data.testDate)}
@@ -251,7 +250,6 @@
 
   function renderEquipMeg(data){
     if(!data) return `<div class="muted">No saved Equipment Megohmmeter Test data found.</div>`;
-
     const mkTable = (rows) => {
       const out = (Array.isArray(rows)?rows:[]).filter(r=>Object.values(r||{}).some(x=>String(x||'').trim()!==''));;
       if(!out.length) return `<div class="muted">(No rows filled)</div>`;
@@ -264,7 +262,6 @@
         </table>
       `;
     };
-
     const rows = data.rows || data.equipRows || [];
     return `
       <div class="kv">
@@ -278,7 +275,6 @@
 
   function renderTorque(data){
     if(!data) return `<div class="muted">No saved Torque Log data found.</div>`;
-
     const rows = (Array.isArray(data.rows)?data.rows:[]).filter(r=>Object.values(r||{}).some(x=>String(x||'').trim()!==''));;
     const tilt = data.tilt || {};
 
@@ -320,7 +316,7 @@
     return `<div><b>${safe(label)}:</b> ${pill}${link}</div>`;
   }
 
-  // Find the latest saved RIF doc (localStorage keys: nexus/equipment/<EQ>/rifs/<RIF-ID>)
+  // ===== RIF (No-Procore) loader + renderer =====
   function findLatestRif(eqId){
     const prefix = `nexus/equipment/${eqId||'NO_EQ'}/rifs/`;
     const out = [];
@@ -337,23 +333,117 @@
     return out[0] || null;
   }
 
+  // Definitions must match rif_no_procore.html
+  const RIF_FIELD_DEFS = [
+    ["1.1","Serial Number"],["1.2","Date of Manufacture"],["1.3","Type/Style"],["1.4","No. of Packages Received"],
+    ["1.5","Receiving Date"],["1.6","Voltage Rating (Volts)"],["1.7","Input Voltage (Volts)"],["1.8","Output Voltage (Volts)"],
+    ["1.9","Current Rating (Amps)"],["1.10","KAIC Rating"],["1.11","Withstand Rating kA"],["1.12","kW Rating"],
+    ["1.13","Number of Modules"],["1.14","Frequency (Hz)"],["1.15","Firmware Revision"],["1.16","Battery Model"],
+    ["1.17","Battery Manufacture Date"],["1.18","Number of Strings"],["1.19","Jars per String"],["1.20","Cells per Jar"],["1.21","Battery Manufacture Date"]
+  ];
+
+  const RIF_CHECK_DEFS = [
+    ["2.1","Confirm End of Line (EOL) Inspection for equipment provided by LLE Vendor."],
+    ["2.2","Confirm LLE Vendor provided EOL as an attachment to this inspection."],
+    ["2.3","Equipment ratings match referenced design drawings and specification requirements."],
+    ["2.4","Confirm, there is no visual damage to equipment enclosure."],
+    ["2.5","Confirm, there is no sign of water inside the enclosure, no visible rust."],
+    ["2.6","Confirm the accessories listed in manufacturer’s submittal have been delivered as specified."],
+    ["2.7","Confirm the spare parts listed in manufacturer’s submittal have been delivered as specified."],
+    ["2.8","Confirm the ID tags of equipment and components match submittal and drawings."],
+    ["2.9","RIF checks complete and observation created for any identified issues."]
+  ];
+
+  function renderRifNoProcore(rifDoc){
+    if(!rifDoc) return `<div class="muted">No saved digital RIF found for this equipment.</div>`;
+
+    const meta = rifDoc.meta || {};
+    const header = rifDoc.header || {};
+    const fields = rifDoc.fields || {};
+    const checks = rifDoc.checks || {};
+
+    const rifId = meta.rifId || '(unknown)';
+    const createdAt = meta.createdAt || '';
+    const updatedAt = meta.updatedAt || '';
+
+    const headerKv = `
+      <div class="kv">
+        ${kvRow('RIF ID', rifId)}
+        ${kvRow('Created', createdAt)}
+        ${kvRow('Updated', updatedAt)}
+        ${kvRow('Header: Type', header.type || '')}
+        ${kvRow('Header: Quality', header.quality || '')}
+        ${kvRow('Header: Location', header.location || '')}
+      </div>
+    `;
+
+    const fieldRows = RIF_FIELD_DEFS.map(([step,label])=>{
+      const f = fields[step] || {};
+      const v = (f.value||'');
+      const n = (f.note||'');
+      if(!String(v).trim() && !String(n).trim()) return '';
+      return `<tr><td class="mono">${safe(step)}</td><td>${safe(label)}</td><td>${safe(v)}</td><td>${safe(n)}</td></tr>`;
+    }).filter(Boolean);
+
+    const fieldsTable = fieldRows.length ? `
+      <table>
+        <thead><tr><th style="width:90px;">Step</th><th>Field</th><th style="width:220px;">Value</th><th style="width:280px;">Note</th></tr></thead>
+        <tbody>${fieldRows.join('')}</tbody>
+      </table>
+    ` : `<div class="muted">(No Receipt Data fields filled)</div>`;
+
+    const checkRows = RIF_CHECK_DEFS.map(([step,text])=>{
+      const c = checks[step] || {};
+      const r = (c.result||'').toUpperCase();
+      const n = (c.note||'');
+      if(!String(r).trim() && !String(n).trim()) return '';
+      return `<tr><td class="mono">${safe(step)}</td><td>${safe(text)}</td><td>${safe(r)}</td><td>${safe(n)}</td></tr>`;
+    }).filter(Boolean);
+
+    const checksTable = checkRows.length ? `
+      <table>
+        <thead><tr><th style="width:90px;">Step</th><th>Checklist Item</th><th style="width:140px;">Result</th><th style="width:280px;">Remarks</th></tr></thead>
+        <tbody>${checkRows.join('')}</tbody>
+      </table>
+    ` : `<div class="muted">(No Checklist entries saved)</div>`;
+
+    const exceptions = [];
+    RIF_CHECK_DEFS.forEach(([step,text])=>{
+      const c = checks[step] || {};
+      if ((c.result||'').toLowerCase() === 'fail'){
+        exceptions.push({ step, text, note: c.note||'' });
+      }
+    });
+
+    const exceptionsBlock = exceptions.length ? `
+      <table>
+        <thead><tr><th style="width:90px;">Step</th><th>Exception</th><th style="width:320px;">Remarks</th></tr></thead>
+        <tbody>
+          ${exceptions.map(x=>`<tr><td class="mono">${safe(x.step)}</td><td>${safe(x.text)}</td><td>${safe(x.note)}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    ` : `<div class="muted">No failed items.</div>`;
+
+    return `
+      ${headerKv}
+      <h3>Section 1: Receipt Data</h3>
+      ${fieldsTable}
+      <h3>Section 2: Inspection Checklist</h3>
+      ${checksTable}
+      <h3>Exceptions Summary</h3>
+      ${exceptionsBlock}
+    `;
+  }
+
   function buildReport(){
     const meta = loadEqMeta() || {};
-
     const procoreConstructionUrl = meta.procoreEquipUrl || '';
     const procoreEnergizationUrl = meta.procoreEnergizationUrl || '';
 
-    // Line/Load meg (existing)
     const meg = readJSON(`nexus_${eq||'NO_EQ'}_meg_log_v2`) || readJSON(`nexus_${eq||'NO_EQ'}_meg_log_v1`);
-
-    // Equipment meg (separate)
-    const equipMeg =
-      readJSON(`nexus_${eq||'NO_EQ'}_equip_meg_log_v2`) ||
-      readJSON(`nexus_${eq||'NO_EQ'}_equip_meg_log_v1`);
-
+    const equipMeg = readJSON(`nexus_${eq||'NO_EQ'}_equip_meg_log_v2`) || readJSON(`nexus_${eq||'NO_EQ'}_equip_meg_log_v1`);
     const torque = readJSON(`nexus_${eq||'NO_EQ'}_torque_log_v1`);
 
-    // LINKS (what the user expects)
     const rifNoProcoreLink = eq ? `rif_no_procore.html?eq=${encodeURIComponent(eq)}` : 'rif_no_procore.html';
     const rifLandingLink = eq ? `form.html?id=rif&eq=${encodeURIComponent(eq)}` : 'form.html?id=rif';
 
@@ -361,7 +451,6 @@
     const equipMegLink = eq ? `meg_log.html?mode=equipment&eq=${encodeURIComponent(eq)}` : 'meg_log.html?mode=equipment';
     const torqueLink = eq ? `torque_log.html?eq=${encodeURIComponent(eq)}` : 'torque_log.html';
 
-    // Equipment Meg completion heuristic (no step key required)
     const equipRows = (equipMeg && (equipMeg.rows || equipMeg.equipRows)) ? (equipMeg.rows || equipMeg.equipRows) : [];
     const equipMegHasData =
       !!equipMeg && (
@@ -371,9 +460,12 @@
         hasAnyFilledRow(equipRows)
       );
 
-    // RIF: discover latest saved RIF doc (optional, but helps validate the right page)
+    // NEW: load the latest saved digital RIF doc and render its content
     const rifLatest = eq ? findLatestRif(eq) : null;
-    const rifLatestId = (rifLatest && rifLatest.doc && rifLatest.doc.meta && rifLatest.doc.meta.rifId) ? rifLatest.doc.meta.rifId : "";
+    const rifDoc = rifLatest ? rifLatest.doc : null;
+
+    // Completion for RIF: either the step toggle, OR existence of a saved digital RIF doc
+    const rifComplete = isDone('rif') || !!rifDoc;
 
     reportEl.innerHTML = `
       ${sectionHeader('NEXUS Package', eq ? `Equipment: ${eq}` : '')}
@@ -384,12 +476,22 @@
       </div>
 
       <h3>Completion Summary</h3>
-      ${renderStatusLine('RIF (No-Procore)', isDone('rif'), rifNoProcoreLink)}
+      ${renderStatusLine('RIF (No-Procore)', rifComplete, rifNoProcoreLink)}
       ${renderStatusLine('Megohmmeter (Line/Load)', isDone('meg'), megLink)}
       ${renderStatusLine('Equipment Meg (If Applicable)', equipMegHasData, equipMegLink)}
       ${renderStatusLine('Torque', isDone('torque'), torqueLink)}
-      ${renderStatusLine('L2', isDone('l2'))}
-      ${renderStatusLine('Pre-FOD', isDone('prefod'))}
+      ${renderStatusLine('L2', isDone('l2'), eq ? `form.html?id=l2&eq=${encodeURIComponent(eq)}` : 'form.html?id=l2')}
+      ${renderStatusLine('Pre-FOD', isDone('prefod'), eq ? `form.html?id=prefod&eq=${encodeURIComponent(eq)}` : 'form.html?id=prefod')}
+
+      <div class="pagebreak"></div>
+
+      ${sectionHeader('RIF (No-Procore) — Digital Readout', rifDoc ? `Loaded: ${safe(rifDoc?.meta?.rifId||'')} • ${safe(rifDoc?.meta?.updatedAt||'')}` : '')}
+      ${renderRifNoProcore(rifDoc)}
+      <div style="margin-top:10px" class="muted">
+        Links: <span class="link"><a href="${safe(rifNoProcoreLink)}" target="_blank" rel="noopener noreferrer">Open RIF (No-Procore)</a></span>
+        • <span class="link"><a href="${safe(rifLandingLink)}" target="_blank" rel="noopener noreferrer">Open RIF Landing</a></span>
+        ${rifLatest?.key ? `• <span class="muted">Storage:</span> <span class="mono">${safe(rifLatest.key)}</span>` : ``}
+      </div>
 
       <div class="pagebreak"></div>
 
@@ -408,11 +510,8 @@
 
       <div class="pagebreak"></div>
 
-      ${sectionHeader('RIF / L2 / Pre-FOD', 'Status + reference links (pre-Firebase build)')}
+      ${sectionHeader('L2 / Pre-FOD', 'Reference links (pre-Firebase build)')}
       <div class="kv">
-        ${kvRowLink('RIF (No-Procore)', rifNoProcoreLink, rifNoProcoreLink)}
-        ${kvRow('Latest saved RIF ID', rifLatestId || '(none found)')}
-        ${kvRowLink('RIF Landing (form.html)', rifLandingLink, rifLandingLink)}
         ${kvRowLink('L2 Page', eq ? `form.html?id=l2&eq=${encodeURIComponent(eq)}` : 'form.html?id=l2')}
         ${kvRowLink('Pre-FOD Page', eq ? `form.html?id=prefod&eq=${encodeURIComponent(eq)}` : 'form.html?id=prefod')}
       </div>
@@ -421,7 +520,6 @@
       </div>
     `;
 
-    // update open procore button enablement based on selection + availability
     const openBtn = document.getElementById('openProcoreBtn');
     function currentUrl(){
       return destSel.value==='energization' ? procoreEnergizationUrl : procoreConstructionUrl;
@@ -441,9 +539,7 @@
     };
   }
 
-  document.getElementById('printBtn').addEventListener('click', () => {
-    window.print();
-  });
+  document.getElementById('printBtn').addEventListener('click', () => window.print());
 
   buildReport();
   statusEl.textContent = 'Report built from saved local data.';
