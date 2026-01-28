@@ -57,6 +57,8 @@
   .link a{color:#0a0f24;text-decoration:underline;font-weight:900;}
   .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;}
 
+  /* Ensure images print reliably */
+  img{max-width:100%;}
   @media print{
     body{background:#fff !important;color:#000 !important;}
     .nx-header-wrap,.topbar,.meta,.hint,.actions{display:none !important;}
@@ -65,6 +67,7 @@
     .report{border:none !important;border-radius:0 !important;}
     .pagebreak{page-break-after:always;}
     .link a{color:#000 !important;}
+    img{break-inside:avoid; page-break-inside:avoid;}
   }
 </style>
 
@@ -151,7 +154,8 @@
 
     <div class="hint">
       This generates a single printable package that includes: RIF (digital No-Procore readout), L2 (digital No-Procore readout),
-      Megohmmeter Test Log (Line/Load), <b>Equipment Megohmmeter Test (If Applicable)</b>, Torque Log (rows + tilt), and Pre-FOD (status/link).<br>
+      Megohmmeter Test Log (Line/Load), <b>Equipment Megohmmeter Test (If Applicable)</b>, Torque Log (rows + tilt),
+      Finished Product Verification Photo (if saved), and Pre-FOD (status/link).<br>
       Procore upload is manual in this pre-Firebase build: export to PDF, then open the Procore page and attach the PDF.
     </div>
 
@@ -314,6 +318,25 @@
     const pill = statusPill(isOk, isOk ? 'COMPLETE' : 'NOT COMPLETE');
     const link = linkHref ? ` <span class="muted">(<a href="${safe(linkHref)}" target="_blank" rel="noopener noreferrer">open</a>)</span>` : '';
     return `<div><b>${safe(label)}:</b> ${pill}${link}</div>`;
+  }
+
+  // ===== FPV Photo renderer (localStorage saved photo) =====
+  function renderFpvPhoto(dataUrl, notes){
+    const has = !!(dataUrl && String(dataUrl).startsWith("data:image/"));
+    if(!has){
+      return `<div class="muted">No saved Finished Product Verification photo found.</div>`;
+    }
+    return `
+      <div class="kv">
+        ${kvRow("Notes", notes || "")}
+      </div>
+      <div style="margin-top:10px;">
+        <img src="${safe(dataUrl)}" alt="FPV Photo" style="max-width:100%;border-radius:14px;border:1px solid rgba(0,0,0,0.15);" />
+      </div>
+      <div class="muted" style="margin-top:8px;">
+        If the image still does not appear in the PDF, it is likely too large for the print engine; compress the saved image on capture.
+      </div>
+    `;
   }
 
   // ===== RIF (No-Procore) loader + renderer =====
@@ -532,7 +555,7 @@
     L2_CHECK_DEFS.forEach(([step,text])=>{
       const c = checks[step] || {};
       const res = (c.result||'').toLowerCase();
-      if (res === 'fail' || res === 'FAIL'.toLowerCase()){
+      if (res === 'fail'){
         exceptions.push({ step, text, note: c.note||'' });
       }
     });
@@ -574,6 +597,13 @@
     const equipMegLink = eq ? `meg_log.html?mode=equipment&eq=${encodeURIComponent(eq)}` : 'meg_log.html?mode=equipment';
     const torqueLink = eq ? `torque_log.html?eq=${encodeURIComponent(eq)}` : 'torque_log.html';
 
+    // FPV Photo (localStorage)
+    const fpvPhoto = localStorage.getItem(`nexus_${eq||'NO_EQ'}_fpv_photo_blob`) || "";
+    const fpvNotes = localStorage.getItem(`nexus_${eq||'NO_EQ'}_fpv_photo_notes`) || "";
+    const fpvLink  = eq ? `fpv_photo_capture.html?eq=${encodeURIComponent(eq)}` : "fpv_photo_capture.html";
+    const fpvHasData = (fpvPhoto && fpvPhoto.startsWith("data:image/"));
+    const fpvComplete = isDone("fpv_photo") || fpvHasData;
+
     const equipRows = (equipMeg && (equipMeg.rows || equipMeg.equipRows)) ? (equipMeg.rows || equipMeg.equipRows) : [];
     const equipMegHasData =
       !!equipMeg && (
@@ -591,9 +621,7 @@
     const l2Latest = eq ? findLatestL2(eq) : null;
     const l2Doc = l2Latest ? l2Latest.doc : null;
 
-    // Completion:
-    // - RIF: step toggle OR existence of saved digital RIF
-    // - L2: step toggle OR existence of saved digital L2
+    // Completion
     const rifComplete = isDone('rif') || !!rifDoc;
     const l2Complete = isDone('l2') || !!l2Doc;
 
@@ -611,6 +639,7 @@
       ${renderStatusLine('Megohmmeter (Line/Load)', isDone('meg'), megLink)}
       ${renderStatusLine('Equipment Meg (If Applicable)', equipMegHasData, equipMegLink)}
       ${renderStatusLine('Torque', isDone('torque'), torqueLink)}
+      ${renderStatusLine('FPV Photo', fpvComplete, fpvLink)}
       ${renderStatusLine('Pre-FOD', isDone('prefod'), eq ? `form.html?id=prefod&eq=${encodeURIComponent(eq)}` : 'form.html?id=prefod')}
 
       <div class="pagebreak"></div>
@@ -646,6 +675,14 @@
 
       ${sectionHeader('Torque Log', '')}
       ${renderTorque(torque)}
+
+      <div class="pagebreak"></div>
+
+      ${sectionHeader('Finished Product Verification Photo', fpvHasData ? 'Saved photo loaded from local browser storage.' : '')}
+      ${renderFpvPhoto(fpvPhoto, fpvNotes)}
+      <div style="margin-top:10px" class="muted">
+        Link: <span class="link"><a href="${safe(fpvLink)}" target="_blank" rel="noopener noreferrer">Open FPV Photo Page</a></span>
+      </div>
 
       <div class="pagebreak"></div>
 
