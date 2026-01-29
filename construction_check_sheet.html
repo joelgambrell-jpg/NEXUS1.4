@@ -1,331 +1,231 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Construction Check Sheet</title>
 
-<link rel="stylesheet" href="assets/css/nexus-core.css"/>
-
 <style>
+:root{
+  --bg:#b60000;
+  --panel:rgba(255,255,255,0.20);
+  --panel2:rgba(0,0,0,0.35);
+  --line:rgba(255,255,255,0.22);
+  --accent:#00c2ff;
+  --handoff:#7ecb55;
+}
 
-/* ================= BACKGROUND ================= */
+*{box-sizing:border-box;}
+html,body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#fff;background:var(--bg);}
 
 body{
-  margin:0;
-  font-family:system-ui, -apple-system, Segoe UI, Roboto;
-  background:url("assets/img/construction-bg.jpg") center/cover no-repeat fixed;
+  background:url("transformer.jpg") center/cover no-repeat fixed;
 }
 
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  backdrop-filter: blur(9px) brightness(.55);
-  z-index:-1;
-}
+/* ===== layout ===== */
 
-
-/* ================= TOP BAR ================= */
+.wrap{max-width:1100px;margin:auto;padding:18px;}
 
 .topbar{
   display:flex;
+  justify-content:space-between;
   align-items:center;
-  gap:14px;
-  padding:16px 30px;
-  background:rgba(0,0,0,.65);
-  backdrop-filter: blur(6px);
-  color:#fff;
+  margin-bottom:12px;
 }
 
-.topbar button{
-  padding:10px 16px;
-  border-radius:12px;
-  border:none;
-  cursor:pointer;
-  font-weight:700;
-  font-size:15px;
-}
-
-.status{
-  margin-left:auto;
-  font-size:14px;
-}
-
-.back-btn{
-  padding:10px 18px;
-  border-radius:16px;
-  background:rgba(255,255,255,.15);
+.backlink{
+  font-weight:900;
   color:#fff;
   text-decoration:none;
-  font-weight:700;
-  font-size:15px;
 }
 
-
-/* ================= MAIN CARD ================= */
-
-.glass-card{
-  max-width:1400px;
-  margin:28px auto;
-  padding:32px;
-  border-radius:20px;
-  background:rgba(255,255,255,.94);
-  backdrop-filter: blur(10px);
-  box-shadow:0 25px 60px rgba(0,0,0,.35);
-}
-
-h1{ font-size:32px; }
-h3{ font-size:20px; }
-
-
-/* ================= TABLE ================= */
-
-.grid{
-  display:grid;
-  grid-template-columns: 80px 2.2fr 1.6fr 160px 170px 90px;
-  gap:10px;
-  align-items:center;
-}
-
-.header{
+.title{
+  text-align:center;
+  font-size:36px;
   font-weight:900;
-  font-size:16px;
-  position:sticky;
-  top:0;
-  background:#f5f5f5;
-  padding:12px 0;
-  border-bottom:2px solid #ddd;
 }
 
-.cell{
-  font-size:15px;
-}
-
-.cell input{
-  width:100%;
-  padding:12px 14px;          /* bigger tap targets */
-  border-radius:10px;
-  border:1px solid #ccc;
-  font-size:15px;
-  min-height:44px;
-}
-
-.section-title{
-  font-weight:900;
-  font-size:22px;
+.sub{
+  text-align:center;
+  font-size:18px;
   margin-bottom:18px;
 }
 
-.signoff{
-  background:#8bc34a;
-  font-weight:800;
+/* ===== card ===== */
+
+.card{
+  background:var(--panel);
+  border-radius:18px;
+  padding:18px;
+  backdrop-filter:blur(8px);
 }
 
-.locked input{
-  background:#eee;
-  pointer-events:none;
-}
+/* ===== buttons ===== */
 
-button.small{
-  padding:7px 10px;
-  font-size:14px;
+.btn{
+  padding:10px 14px;
+  border-radius:999px;
+  font-weight:900;
+  border:2px solid var(--accent);
+  background:#0a0f24;
+  color:#3ecbff;
   cursor:pointer;
+  margin-right:8px;
 }
 
-/* ================= MOBILE ================= */
+/* ===== table ===== */
+
+.table-wrap{
+  overflow-x:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:900px;
+}
+
+th,td{
+  padding:14px 10px;
+  border-bottom:1px solid rgba(255,255,255,.14);
+}
+
+th{
+  position:sticky;
+  top:0;
+  background:rgba(0,0,0,.35);
+  font-size:13px;
+  text-transform:uppercase;
+}
+
+.cell-input{
+  width:100%;
+  padding:12px;
+  font-size:16px; /* larger */
+  font-weight:900;
+  border-radius:10px;
+}
+
+/* ===== handoff rows ===== */
+
+.handoff td{
+  background:var(--handoff);
+  color:#000;
+  font-weight:900;
+}
+
+/* ===== mobile ===== */
 
 @media(max-width:900px){
-
-  .grid{
-    grid-template-columns: 1fr;
-  }
-
-  .cell input{
-    font-size:16px;
-  }
-
-  h1{ font-size:24px; }
+  th,td{padding:18px 12px;}
+  .cell-input{font-size:18px;}
 }
-
 </style>
 </head>
 
-
-
 <body>
 
-<!-- ================= TOP BAR ================= -->
+<div class="wrap">
 
 <div class="topbar">
-
-  <a id="backBtn" class="back-btn">← Back to Equipment</a>
-
-  <button id="lockBtn">Lock</button>
-  <button id="addBtn">+ Row</button>
-  <button id="exportBtn">Export JSON</button>
-
-  <span id="status" class="status">Saved</span>
+  <a id="backBtn" class="backlink">← Back to Equipment</a>
+  <div>
+    <button class="btn" id="addRow">+ Row</button>
+    <button class="btn" id="save">Save</button>
+    <button class="btn" onclick="window.print()">PDF</button>
+  </div>
 </div>
 
+<div class="title">Construction Check Sheet</div>
+<div class="sub" id="eqSub"></div>
 
+<div class="card">
 
-<!-- ================= MAIN CARD ================= -->
+<h3>Construction Items</h3>
 
-<div class="glass-card">
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+  <th style="width:45%">Item</th>
+  <th style="width:15%">Sign Off</th>
+  <th style="width:15%">Date</th>
+  <th style="width:25%">Notes</th>
+</tr>
+</thead>
 
-<h1>Construction Check Sheet</h1>
-<h3 id="equipmentLabel"></h3>
-
-<!-- RENAMED -->
-<div class="section-title">Construction Items</div>
-
-<div id="sheet"></div>
-
+<tbody id="tbody"></tbody>
+</table>
 </div>
 
-
+</div>
+</div>
 
 <script>
 
-/* ================= ROUTING ================= */
+const qs=new URLSearchParams(location.search);
+const eq=qs.get("eq")||"";
 
-const params = new URLSearchParams(window.location.search);
-const eq = params.get("eq") || "";
+document.getElementById("eqSub").textContent="Equipment: "+eq;
+document.getElementById("backBtn").href="equipment.html?eq="+encodeURIComponent(eq);
 
-document.getElementById("equipmentLabel").textContent = eq ? "Equipment: "+eq : "";
-document.getElementById("backBtn").href =
-  "equipment.html" + (eq ? "?eq="+encodeURIComponent(eq) : "");
+const KEY="construction_v2_"+eq;
+const tbody=document.getElementById("tbody");
 
-
-/* ================= DATA ================= */
-
-const KEY = "construction:"+eq;
-const sheet = document.getElementById("sheet");
-const status = document.getElementById("status");
-
-const defaultRows = [
-  {text:"Building Number"},
-  {text:"Phase"},
-  {text:"Foreman"},
-  {text:"Equip ID"},
+let rows = JSON.parse(localStorage.getItem(KEY)||"null") || [
   {text:"RIF Completed"},
   {text:"Labels installed by QCX"},
   {text:"Phenolic"},
   {text:"Arc Flash"},
-  {text:"QCX → Construction Handoff", sign:true},
-  {text:"6\" clearance from walls and panels"},
-  {text:"Anchored using wedge anchors"},
-  {text:"Housing mounted square and level"},
-  {text:"XFMR NETA tested"},
-  {text:"Construction → QCX Final Handoff", sign:true},
-  {text:"Construction Foreman Name"},
-  {text:"QCX Foreman Name"},
-  {text:"Date"}
+  {text:"QCX → Construction Handoff", handoff:true},
+  {text:"Anchored & Leveled"},
+  {text:"NETA Tested"},
+  {text:"Construction → QCX Final Handoff", handoff:true}
 ];
 
-let rows=[];
-
-
-/* ================= RENDER ================= */
-
 function render(){
-
-  sheet.innerHTML="";
-
-  const header=document.createElement("div");
-  header.className="grid header";
-
-  /* RENAMED Entry -> Notes */
-  header.innerHTML=`
-    <div>Step</div>
-    <div>Procedure</div>
-    <div>Notes</div>
-    <div>Sign Off</div>
-    <div>Date</div>
-    <div></div>
-  `;
-  sheet.appendChild(header);
+  tbody.innerHTML="";
 
   rows.forEach((r,i)=>{
 
-    const row=document.createElement("div");
-    row.className="grid cell"+(r.sign?" signoff":"");
+    const tr=document.createElement("tr");
+    if(r.handoff) tr.className="handoff";
 
-    row.innerHTML=`
-      <div>${i+1}</div>
-      <input value="${r.text||""}">
-      <input value="${r.notes||""}">
-      <input value="${r.signer||""}">
-      <input type="date" value="${r.date||""}">
-      <div>
-        <button class="small add">+</button>
-        <button class="small del">−</button>
-      </div>
+    tr.innerHTML=`
+      <td><input class="cell-input" value="${r.text||""}"></td>
+      <td><input class="cell-input" value="${r.sign||""}"></td>
+      <td><input class="cell-input" type="date" value="${r.date||""}"></td>
+      <td><input class="cell-input" value="${r.notes||""}"></td>
     `;
 
-    const inputs=row.querySelectorAll("input");
+    const inputs=tr.querySelectorAll("input");
 
     inputs.forEach(inp=>{
       inp.oninput=()=>{
         r.text=inputs[0].value;
-        r.notes=inputs[1].value;
-        r.signer=inputs[2].value;
-        r.date=inputs[3].value;
+        r.sign=inputs[1].value;
+        r.date=inputs[2].value;
+        r.notes=inputs[3].value;
         save();
       };
     });
 
-    row.querySelector(".add").onclick=()=>{
-      rows.splice(i+1,0,{text:"New Item"});
-      render(); save();
-    };
-
-    row.querySelector(".del").onclick=()=>{
-      rows.splice(i,1);
-      render(); save();
-    };
-
-    sheet.appendChild(row);
+    tbody.appendChild(tr);
   });
 }
 
-
-/* ================= SAVE / LOAD ================= */
-
 function save(){
   localStorage.setItem(KEY,JSON.stringify(rows));
-  status.textContent="Saved";
 }
 
-function load(){
-  rows = JSON.parse(localStorage.getItem(KEY)||"null") || defaultRows;
-}
+document.getElementById("save").onclick=save;
 
-
-/* ================= BUTTONS ================= */
-
-document.getElementById("lockBtn").onclick=()=>{
-  document.querySelector(".glass-card").classList.toggle("locked");
-};
-
-document.getElementById("addBtn").onclick=()=>{
+document.getElementById("addRow").onclick=()=>{
   rows.push({text:"New Item"});
-  render(); save();
+  render();
+  save();
 };
 
-document.getElementById("exportBtn").onclick=()=>{
-  const blob=new Blob([JSON.stringify(rows,null,2)],{type:"application/json"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="construction-sheet.json";
-  a.click();
-};
-
-
-/* ================= INIT ================= */
-
-load();
 render();
 
 </script>
