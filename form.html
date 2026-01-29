@@ -454,6 +454,68 @@ button.btn:empty{ display:none !important; }
 
 <script src="assets/js/nexus-core.js"></script>
 <script src="assets/js/nexus-firebase-bridge.js"></script>
+<script>
+/* Hide any blank pill/button that gets injected (covers whitespace, nbsp, etc.) */
+(function(){
+  function isTrulyBlankButton(el){
+    if (!el) return false;
+
+    // Only target button-ish elements
+    const isButtonish =
+      el.matches('a,button,div,span') &&
+      (
+        el.classList.contains('btn') ||
+        el.getAttribute('role') === 'button' ||
+        el.tagName === 'BUTTON'
+      );
+
+    if (!isButtonish) return false;
+
+    // If it contains any real media/icon, do NOT hide it
+    if (el.querySelector('img,svg,canvas,video')) return false;
+
+    // If it has an aria-label or title, treat it as intentional
+    const aria = (el.getAttribute('aria-label') || '').trim();
+    const title = (el.getAttribute('title') || '').trim();
+    if (aria || title) return false;
+
+    // Text content check (kills whitespace / nbsp / zero-width)
+    const text = (el.textContent || '')
+      .replace(/\u00A0/g, ' ')   // nbsp
+      .replace(/\u200B/g, '')   // zero width
+      .trim();
+
+    return text.length === 0;
+  }
+
+  function hideBlanks(root){
+    const scope = root || document;
+    const candidates = scope.querySelectorAll('a,button,div,span');
+    candidates.forEach(el => {
+      if (isTrulyBlankButton(el)){
+        el.style.display = 'none';
+        el.style.pointerEvents = 'none';
+      }
+    });
+  }
+
+  // Run now
+  hideBlanks(document);
+
+  // Keep it clean if app.js injects more
+  const obs = new MutationObserver((mutations) => {
+    for (const m of mutations){
+      m.addedNodes && m.addedNodes.forEach(n => {
+        if (n.nodeType === 1){
+          hideBlanks(n);
+        }
+      });
+    }
+  });
+
+  obs.observe(document.body, { childList:true, subtree:true });
+})();
+</script>
 
 </body>
 </html>
