@@ -1,4 +1,5 @@
-<!-- form.html (FULL DROP-IN) — shows the saved equipment image for ?eq= -->
+<!-- form.html (FULL DROP-IN) — ONLY CHANGE: remove the lower/bottom embedded media (diagram) and the code that drives it.
+     Equipment image (upper) stays as-is. -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -74,6 +75,7 @@ h1{font-size:32px;font-weight:700;margin-top:0;}
   box-shadow:0 0 14px rgba(0,255,102,.85);
 }
 
+/* NOTE: left in place even though bottom media is removed (harmless) */
 .media{margin-top:20px;}
 .embed{width:100%;height:75vh;border:none;border-radius:12px;background:#111;}
 
@@ -93,7 +95,6 @@ h1{font-size:32px;font-weight:700;margin-top:0;}
 }
 
 #stepCompleteBtn{ display:none; }
-
 /* hidden by default; shown only when id=rif */
 #rifNoProcoreBtn{ display:none; }
 
@@ -158,7 +159,7 @@ h1{font-size:32px;font-weight:700;margin-top:0;}
   <div id="eqLabel" class="eq-label"></div>
   <div class="section-title" id="section-title"></div>
 
-  <!-- Equipment Image Display -->
+  <!-- Equipment Image Display (UPPER IMAGE — KEEP) -->
   <div id="nexusEquipImageContainer">
     <img id="nexusEquipImageDisplay" alt="Equipment image" />
   </div>
@@ -173,7 +174,8 @@ h1{font-size:32px;font-weight:700;margin-top:0;}
     <button class="btn" id="stepCompleteBtn" type="button">Mark Step Complete</button>
   </div>
 
-  <div id="media" class="media" style="display:none;"></div>
+  <!-- REMOVED: bottom/embedded media area -->
+  <!-- <div id="media" class="media" style="display:none;"></div> -->
 </div>
 
 <script src="config.js"></script>
@@ -232,10 +234,12 @@ h1{font-size:32px;font-weight:700;margin-top:0;}
   patchLinks();
   const observer = new MutationObserver(patchLinks);
   observer.observe(document.getElementById("buttons") || document.body, { childList:true, subtree:true });
+
+  // REMOVED: any attempt to observe/patch #media specifically is unnecessary now.
 })();
 </script>
 
-<!-- Equipment image loader -->
+<!-- Equipment image loader (KEEP) -->
 <script>
 (function(){
   const qs = new URLSearchParams(location.search);
