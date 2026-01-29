@@ -31,90 +31,95 @@ body::before{
 .topbar{
   display:flex;
   align-items:center;
-  gap:12px;
-  padding:14px 28px;
+  gap:14px;
+  padding:16px 30px;
   background:rgba(0,0,0,.65);
   backdrop-filter: blur(6px);
   color:#fff;
 }
 
 .topbar button{
-  padding:7px 12px;
+  padding:10px 16px;
   border-radius:12px;
   border:none;
   cursor:pointer;
-  font-weight:600;
+  font-weight:700;
+  font-size:15px;
 }
 
 .status{
   margin-left:auto;
-  font-size:13px;
-  opacity:.9;
+  font-size:14px;
 }
 
 .back-btn{
-  padding:7px 14px;
-  border-radius:14px;
+  padding:10px 18px;
+  border-radius:16px;
   background:rgba(255,255,255,.15);
   color:#fff;
   text-decoration:none;
   font-weight:700;
-}
-
-.back-btn:hover{
-  background:rgba(255,255,255,.25);
+  font-size:15px;
 }
 
 
 /* ================= MAIN CARD ================= */
 
 .glass-card{
-  max-width:1350px;
+  max-width:1400px;
   margin:28px auto;
-  padding:26px;
+  padding:32px;
   border-radius:20px;
-  background:rgba(255,255,255,.93);
+  background:rgba(255,255,255,.94);
   backdrop-filter: blur(10px);
   box-shadow:0 25px 60px rgba(0,0,0,.35);
 }
+
+h1{ font-size:32px; }
+h3{ font-size:20px; }
 
 
 /* ================= TABLE ================= */
 
 .grid{
   display:grid;
-  grid-template-columns: 70px 2fr 1fr 140px 150px 80px;
-  gap:8px;
+  grid-template-columns: 80px 2.2fr 1.6fr 160px 170px 90px;
+  gap:10px;
   align-items:center;
 }
 
 .header{
-  font-weight:800;
+  font-weight:900;
+  font-size:16px;
   position:sticky;
   top:0;
-  background:#f6f6f6;
-  border-bottom:1px solid #ddd;
-  padding:8px 0;
-  z-index:2;
+  background:#f5f5f5;
+  padding:12px 0;
+  border-bottom:2px solid #ddd;
+}
+
+.cell{
+  font-size:15px;
 }
 
 .cell input{
   width:100%;
-  padding:6px 8px;
-  border-radius:8px;
+  padding:12px 14px;          /* bigger tap targets */
+  border-radius:10px;
   border:1px solid #ccc;
-  font-size:13px;
+  font-size:15px;
+  min-height:44px;
 }
 
 .section-title{
-  font-weight:800;
-  font-size:20px;
-  margin-bottom:14px;
+  font-weight:900;
+  font-size:22px;
+  margin-bottom:18px;
 }
 
 .signoff{
   background:#8bc34a;
-  font-weight:700;
+  font-weight:800;
 }
 
 .locked input{
@@ -123,13 +128,24 @@ body::before{
 }
 
 button.small{
-  padding:4px 7px;
-  font-size:12px;
+  padding:7px 10px;
+  font-size:14px;
   cursor:pointer;
 }
 
+/* ================= MOBILE ================= */
+
 @media(max-width:900px){
-  .grid{ grid-template-columns:1fr; }
+
+  .grid{
+    grid-template-columns: 1fr;
+  }
+
+  .cell input{
+    font-size:16px;
+  }
+
+  h1{ font-size:24px; }
 }
 
 </style>
@@ -161,7 +177,8 @@ button.small{
 <h1>Construction Check Sheet</h1>
 <h3 id="equipmentLabel"></h3>
 
-<div class="section-title">Inspection Items</div>
+<!-- RENAMED -->
+<div class="section-title">Construction Items</div>
 
 <div id="sheet"></div>
 
@@ -177,7 +194,6 @@ const params = new URLSearchParams(window.location.search);
 const eq = params.get("eq") || "";
 
 document.getElementById("equipmentLabel").textContent = eq ? "Equipment: "+eq : "";
-
 document.getElementById("backBtn").href =
   "equipment.html" + (eq ? "?eq="+encodeURIComponent(eq) : "");
 
@@ -189,7 +205,6 @@ const sheet = document.getElementById("sheet");
 const status = document.getElementById("status");
 
 const defaultRows = [
-
   {text:"Building Number"},
   {text:"Phase"},
   {text:"Foreman"},
@@ -198,19 +213,12 @@ const defaultRows = [
   {text:"Labels installed by QCX"},
   {text:"Phenolic"},
   {text:"Arc Flash"},
-
   {text:"QCX → Construction Handoff", sign:true},
-
-  {text:'6" clearance from walls and panels'},
-  {text:"Remove front cover bolts, bag & tag"},
-  {text:"Shipping assembly (if required)"},
-  {text:"Apply proper cover protection"},
-  {text:'Anchored using 1/2" wedge anchors'},
+  {text:"6\" clearance from walls and panels"},
+  {text:"Anchored using wedge anchors"},
   {text:"Housing mounted square and level"},
-  {text:"XFMR NETA tested (validated by QCX)"},
-
+  {text:"XFMR NETA tested"},
   {text:"Construction → QCX Final Handoff", sign:true},
-
   {text:"Construction Foreman Name"},
   {text:"QCX Foreman Name"},
   {text:"Date"}
@@ -227,10 +235,12 @@ function render(){
 
   const header=document.createElement("div");
   header.className="grid header";
+
+  /* RENAMED Entry -> Notes */
   header.innerHTML=`
     <div>Step</div>
     <div>Procedure</div>
-    <div>Entry</div>
+    <div>Notes</div>
     <div>Sign Off</div>
     <div>Date</div>
     <div></div>
@@ -245,7 +255,7 @@ function render(){
     row.innerHTML=`
       <div>${i+1}</div>
       <input value="${r.text||""}">
-      <input value="${r.entry||""}">
+      <input value="${r.notes||""}">
       <input value="${r.signer||""}">
       <input type="date" value="${r.date||""}">
       <div>
@@ -256,12 +266,10 @@ function render(){
 
     const inputs=row.querySelectorAll("input");
 
-    inputs.forEach(()=>{});
-
     inputs.forEach(inp=>{
       inp.oninput=()=>{
         r.text=inputs[0].value;
-        r.entry=inputs[1].value;
+        r.notes=inputs[1].value;
         r.signer=inputs[2].value;
         r.date=inputs[3].value;
         save();
