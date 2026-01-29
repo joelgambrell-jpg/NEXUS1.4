@@ -1,291 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Construction Check Sheet</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Construction Check Sheet</title>
 
-  <!-- Global NEXUS -->
-  <link rel="stylesheet" href="assets/css/nexus-core.css" />
-  <script defer src="assets/js/nexus-core.js"></script>
-  <script defer src="assets/js/nexus-firebase-bridge.js"></script>
+<link rel="stylesheet" href="assets/css/nexus-core.css"/>
 
-  <style>
-    /* ===== table behavior ===== */
+<style>
+.section{
+  background:#fff;
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:18px;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
 
-    .table-wrap{
-      overflow:auto;
-      max-height:75vh;
-    }
+.section-head{
+  font-weight:800;
+  margin-bottom:12px;
+  padding:6px 10px;
+  border-radius:8px;
+  background:#8bc34a; /* matches your green bars */
+}
 
-    table{
-      width:100%;
-      border-collapse:collapse;
-      background:#fff;
-      font-size:13px;
-    }
+.grid{
+  display:grid;
+  grid-template-columns: 70px 2fr 1fr 1.3fr;
+  gap:8px;
+  align-items:center;
+}
 
-    th, td{
-      border:1px solid #ddd;
-      padding:6px 8px;
-      min-width:110px;
-      vertical-align:top;
-    }
+.grid.header{
+  font-weight:700;
+  border-bottom:1px solid #ddd;
+  margin-bottom:8px;
+}
 
-    /* sticky header */
-    th{
-      position:sticky;
-      top:0;
-      background:#f2f2f2;
-      z-index:5;
-    }
+input, textarea{
+  width:100%;
+  padding:6px 8px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:13px;
+}
 
-    /* editable cells */
-    td[contenteditable]{
-      white-space:pre-wrap;
-      word-break:break-word;
-      min-height:28px;
-    }
+textarea{ resize:vertical; }
 
-    /* auto grow */
-    td[contenteditable]:focus{
-      outline:2px solid #4caf50;
-      background:#f6fff6;
-    }
+.toolbar{
+  display:flex;
+  gap:8px;
+  margin-bottom:16px;
+}
 
-    /* changed highlight */
-    td.changed{
-      background:#fff9c4;
-    }
+.toolbar button{
+  padding:6px 10px;
+  cursor:pointer;
+}
 
-    /* lock mode */
-    .locked td[contenteditable]{
-      background:#f7f7f7;
-      pointer-events:none;
-    }
+.status{ margin-left:auto; font-size:12px; }
 
-    /* toolbar */
-    .toolbar{
-      display:flex;
-      gap:8px;
-      margin-bottom:12px;
-      flex-wrap:wrap;
-    }
+.locked input,
+.locked textarea{
+  background:#eee;
+  pointer-events:none;
+}
 
-    .toolbar button{
-      padding:6px 10px;
-      font-weight:600;
-      cursor:pointer;
-    }
-
-    .status{
-      margin-left:auto;
-      font-size:12px;
-      font-weight:700;
-      align-self:center;
-    }
-
-    /* mobile stack */
-    @media (max-width: 768px){
-      td, th{
-        min-width:80px;
-        font-size:12px;
-      }
-    }
-
-    /* print friendly */
-    @media print{
-      .toolbar, .back-link{
-        display:none;
-      }
-      .table-wrap{
-        max-height:none;
-        overflow:visible;
-      }
-    }
-  </style>
+@media(max-width:900px){
+  .grid{ grid-template-columns:1fr; }
+}
+</style>
 </head>
+
 
 <body class="nexus-bg">
 <div class="page-shell">
+<div class="card">
 
-  <div class="back-link">
-    <a id="backBtn" href="equipment.html">← Back to Equipment</a>
-  </div>
+<h1>Construction Check Sheet</h1>
+<h3 id="equipmentLabel"></h3>
 
-  <div class="card">
-    <h1>Construction Check Sheet</h1>
-    <h3 id="equipmentLabel"></h3>
-
-    <!-- ===== Toolbar ===== -->
-    <div class="toolbar">
-      <button id="lockBtn">🔒 Lock</button>
-      <button id="exportJson">Export JSON</button>
-      <button id="exportCsv">Export CSV/Excel</button>
-      <button onclick="window.print()">Print/PDF</button>
-      <button id="clearBtn">Clear</button>
-      <span id="saveStatus" class="status">Saved</span>
-    </div>
-
-    <div class="table-wrap">
-      <table id="sheet">
-        <tbody id="constructionBody">
-
-          <!-- Sticky title row -->
-          <tr>
-            <th colspan="9">LV Transformer 001</th>
-          </tr>
-
-          <!-- ======= KEEP ALL YOUR ROWS EXACTLY AS THEY ARE BELOW ======= -->
-          <!-- (paste your full existing rows here unchanged) -->
-
-        </tbody>
-      </table>
-    </div>
-  </div>
+<div class="toolbar">
+  <button id="lockBtn">🔒 Lock</button>
+  <button id="exportBtn">Export JSON</button>
+  <span id="status" class="status">Saved</span>
 </div>
 
+
+<!-- ================= PROJECT INFO ================= -->
+<div class="section">
+<div class="section-head">Project Information</div>
+<div class="grid header"><div>Step</div><div>Procedure</div><div>Entry</div><div>Notes</div></div>
+
+<div class="grid">
+<div>1</div><div>Building Number</div><input data-k="building"><textarea></textarea>
+<div>2</div><div>Phase</div><input data-k="phase"><textarea></textarea>
+<div>3</div><div>Foreman</div><input data-k="foreman"><textarea></textarea>
+<div>4</div><div>Equip ID</div><input data-k="equip"><textarea></textarea>
+</div>
+</div>
+
+
+<!-- ================= QCX ================= -->
+<div class="section">
+<div class="section-head">QCX / Labels</div>
+<div class="grid header"><div>Step</div><div>Procedure</div><div>Entry</div><div>Notes</div></div>
+
+<div class="grid">
+<div>5</div><div>RIF Completed</div><input data-k="rif"><textarea></textarea>
+<div>6</div><div>Labels installed by QCX</div><input><textarea></textarea>
+<div>7</div><div>Phenolic</div><input><textarea></textarea>
+<div>8</div><div>Arc Flash</div><input><textarea></textarea>
+</div>
+</div>
+
+
+<!-- ================= INSTALLATION ================= -->
+<div class="section">
+<div class="section-head">Equipment Mounted / Installation Specs</div>
+
+<div class="grid header"><div>Step</div><div>Procedure</div><div>Entry</div><div>Notes</div></div>
+
+<div class="grid">
+<div>9</div><div>6" clearance from walls/panels</div><input><textarea></textarea>
+<div>10</div><div>Remove front cover bolts & bag/tag</div><input><textarea></textarea>
+<div>11</div><div>Shipping assembly (if required)</div><input><textarea></textarea>
+<div>12</div><div>Apply proper cover protection</div><input><textarea></textarea>
+<div>13</div><div>Anchored with 1/2" wedge anchors</div><input><textarea></textarea>
+<div>14</div><div>Housing mounted square & level</div><input><textarea></textarea>
+<div>15</div><div>XFMR NETA Tested (QCX validated)</div><input><textarea></textarea>
+</div>
+</div>
+
+
+<!-- ================= WIRING ================= -->
+<div class="section">
+<div class="section-head">Internal Wiring & Termination</div>
+
+<div class="grid header"><div>Step</div><div>Procedure</div><div>Entry</div><div>Notes</div></div>
+
+<div class="grid">
+<div>16</div><div>Install correct phase lugs</div><input><textarea></textarea>
+<div>17</div><div>Install proper ground bar</div><input><textarea></textarea>
+<div>18</div><div>Primary wire matches 1-Line diagram</div><input><textarea></textarea>
+<div>19</div><div>Verify primary phase color</div><input><textarea></textarea>
+<div>20</div><div>Ground bonding bushing installed</div><input><textarea></textarea>
+<div>21</div><div>Secondary wire matches 1-Line diagram</div><input><textarea></textarea>
+<div>22</div><div>Verify secondary phase color</div><input><textarea></textarea>
+<div>23</div><div>Verify ground copper #8 or larger</div><input><textarea></textarea>
+<div>24</div><div>Bonding jumper installed correctly</div><input><textarea></textarea>
+<div>25</div><div>Hardware kit matches inventory</div><input><textarea></textarea>
+<div>26</div><div>Install front cover with all hardware</div><input><textarea></textarea>
+</div>
+</div>
+
+
+<!-- ================= SIGNOFF ================= -->
+<div class="section">
+<div class="section-head">Final Verification / Handoff</div>
+
+<div class="grid">
+<div>27</div><div>Construction Foreman Name</div><input data-k="cf"><textarea></textarea>
+<div>28</div><div>QCX Foreman Name</div><input data-k="qf"><textarea></textarea>
+<div>29</div><div>Date</div><input type="date" data-k="date"><textarea></textarea>
+</div>
+</div>
+
+</div>
+</div>
+
+
 <script>
-/* ===============================
-   EQUIPMENT ROUTING
-================================= */
-const params = new URLSearchParams(window.location.search);
-const eq = params.get("eq") || "default";
+const eq = new URLSearchParams(location.search).get("eq") || "default";
+document.getElementById("equipmentLabel").textContent = "Equipment: "+eq;
 
-document.getElementById("equipmentLabel").textContent =
-  eq ? "Equipment: " + eq : "";
+const KEY="construction:"+eq;
+const status=document.getElementById("status");
 
-document.getElementById("backBtn").href =
-  "equipment.html" + (eq ? "?eq=" + encodeURIComponent(eq) : "");
-
-
-/* ===============================
-   SAVE SYSTEM (local + firebase ready)
-================================= */
-
-const SAVE_KEY = "construction:" + eq;
-const statusEl = document.getElementById("saveStatus");
-const body = document.getElementById("constructionBody");
-
-const cells = () => [...body.querySelectorAll("td[contenteditable]")];
-
-function snapshot(){
-  const data = {};
-  cells().forEach(td=>{
-    const key = td.dataset.r + ":" + td.dataset.c;
-    data[key] = td.textContent;
-  });
-  return data;
+function save(){
+  const d={};
+  document.querySelectorAll("[data-k]").forEach(e=>d[e.dataset.k]=e.value);
+  localStorage.setItem(KEY,JSON.stringify(d));
+  status.textContent="Saved";
 }
 
-function apply(data){
-  cells().forEach(td=>{
-    const key = td.dataset.r + ":" + td.dataset.c;
-    td.textContent = data[key] || "";
-  });
+function load(){
+  const r=localStorage.getItem(KEY);
+  if(!r) return;
+  const d=JSON.parse(r);
+  document.querySelectorAll("[data-k]").forEach(e=>e.value=d[e.dataset.k]||"");
 }
 
-function saveLocal(){
-  localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot()));
-  statusEl.textContent = "Saved";
-}
-
-function loadLocal(){
-  const raw = localStorage.getItem(SAVE_KEY);
-  if(raw) apply(JSON.parse(raw));
-}
-
-/* Firebase hook placeholder */
-function saveFirebase(data){
-  if(window.nexusFirebaseSave){
-    window.nexusFirebaseSave("construction", eq, data);
-  }
-}
-
-function saveAll(){
-  const data = snapshot();
-  saveLocal();
-  saveFirebase(data);
-}
-
-/* autosave */
-let timer;
-function queueSave(){
-  statusEl.textContent = "Saving…";
-  clearTimeout(timer);
-  timer = setTimeout(saveAll, 400);
-}
-
-/* ===============================
-   EDIT BEHAVIOR
-================================= */
-
-cells().forEach(td=>{
-  td.addEventListener("input", ()=>{
-    td.classList.add("changed");
-    queueSave();
-  });
-
-  /* Tab / Enter navigation */
-  td.addEventListener("keydown", e=>{
-    if(e.key==="Enter"){
-      e.preventDefault();
-      const next = td.parentElement.nextElementSibling?.querySelector("td[contenteditable]");
-      next?.focus();
-    }
-  });
+document.querySelectorAll("input,textarea").forEach(e=>{
+  e.oninput=()=>{
+    status.textContent="Saving…";
+    clearTimeout(window.t);
+    window.t=setTimeout(save,300);
+  };
 });
 
-/* ===============================
-   LOCK / UNLOCK
-================================= */
-
-let locked=false;
-const lockBtn = document.getElementById("lockBtn");
-
-lockBtn.onclick = ()=>{
-  locked=!locked;
-  document.getElementById("sheet").classList.toggle("locked", locked);
-  lockBtn.textContent = locked ? "🔓 Unlock" : "🔒 Lock";
+document.getElementById("lockBtn").onclick=()=>{
+  document.querySelector(".card").classList.toggle("locked");
 };
 
-/* ===============================
-   EXPORT
-================================= */
-
-document.getElementById("exportJson").onclick = ()=>{
-  const blob = new Blob([JSON.stringify(snapshot(),null,2)],{type:"application/json"});
-  download(blob,"construction.json");
-};
-
-document.getElementById("exportCsv").onclick = ()=>{
-  const rows=[...body.querySelectorAll("tr")];
-  const csv = rows.map(r=>[...r.children].map(c=>`"${c.textContent.replace(/"/g,'""')}"`).join(",")).join("\n");
-  download(new Blob([csv]),"construction.csv");
-};
-
-function download(blob,name){
+document.getElementById("exportBtn").onclick=()=>{
+  const blob=new Blob([localStorage.getItem(KEY)],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download=name;
+  a.download="construction.json";
   a.click();
-}
-
-/* ===============================
-   CLEAR
-================================= */
-
-document.getElementById("clearBtn").onclick = ()=>{
-  if(!confirm("Clear all data?")) return;
-  cells().forEach(td=>td.textContent="");
-  saveAll();
 };
 
-/* ===============================
-   INIT
-================================= */
-
-loadLocal();
+load();
 </script>
 
 </body>
