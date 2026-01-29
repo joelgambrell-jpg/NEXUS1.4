@@ -1,5 +1,4 @@
-<!-- form.html (FULL DROP-IN) — ONLY CHANGE: remove the lower/bottom embedded media (diagram) and the code that drives it.
-     Equipment image (upper) stays as-is. -->
+<!-- form.html (FULL DROP-IN) — ONLY CHANGE: equipment image shows ONLY when id=transformer -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -159,7 +158,7 @@ h1{font-size:32px;font-weight:700;margin-top:0;}
   <div id="eqLabel" class="eq-label"></div>
   <div class="section-title" id="section-title"></div>
 
-  <!-- Equipment Image Display (UPPER IMAGE — KEEP) -->
+  <!-- Equipment Image Display -->
   <div id="nexusEquipImageContainer">
     <img id="nexusEquipImageDisplay" alt="Equipment image" />
   </div>
@@ -234,20 +233,28 @@ h1{font-size:32px;font-weight:700;margin-top:0;}
   patchLinks();
   const observer = new MutationObserver(patchLinks);
   observer.observe(document.getElementById("buttons") || document.body, { childList:true, subtree:true });
-
-  // REMOVED: any attempt to observe/patch #media specifically is unnecessary now.
 })();
 </script>
 
-<!-- Equipment image loader (KEEP) -->
+<!-- Equipment image loader (ONLY show on id=transformer) -->
 <script>
 (function(){
   const qs = new URLSearchParams(location.search);
   const eq = (qs.get("eq") || "").trim();
-  if(!eq) return;
+  const id = (qs.get("id") || "").trim();
 
+  const container = document.getElementById("nexusEquipImageContainer");
   const img = document.getElementById("nexusEquipImageDisplay");
-  if(!img) return;
+
+  if (!container || !img) return;
+
+  // ✅ ONLY show the equipment image on the Diagram Image page
+  if (id !== "transformer"){
+    container.style.display = "none";
+    return;
+  }
+
+  if(!eq) return;
 
   function readLocalRecord(){
     try{ return JSON.parse(localStorage.getItem(`nexus_equipment_${eq}`) || "{}"); }
@@ -263,7 +270,7 @@ h1{font-size:32px;font-weight:700;margin-top:0;}
   const rec = readLocalRecord();
   if(rec.imageDataUrl) show(rec.imageDataUrl);
 
-  // Firebase-ready hook
+  // Firebase-ready hook (still only affects this page because of the id gate above)
   window.NEXUS_setEquipmentImageUrl = function(url){
     show(url);
   };
