@@ -1,190 +1,187 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Construction Check Sheet</title>
 
-<style>
-:root{
-  --bg:#b60000;
-  --panel:rgba(255,255,255,0.20);
-  --panel2:rgba(0,0,0,0.35);
-  --line:rgba(255,255,255,0.22);
-  --accent:#00c2ff;
-  --handoff:#7ecb55;
-}
+<link rel="stylesheet" href="assets/css/nexus-core.css" />
 
-*{box-sizing:border-box;}
-html,body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#fff;background:var(--bg);}
+<style>
+
+/* ================= MATCH RIF LOOK ================= */
 
 body{
-  background:url("transformer.jpg") center/cover no-repeat fixed;
+  margin:0;
+  font-family:system-ui;
+  background:url("assets/img/construction-bg.jpg") center/cover no-repeat fixed;
 }
 
-/* ===== layout ===== */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  backdrop-filter: blur(10px) brightness(.55);
+  z-index:-1;
+}
 
-.wrap{max-width:1100px;margin:auto;padding:18px;}
+/* ===== HEADER BAR (same as RIF) ===== */
 
 .topbar{
   display:flex;
-  justify-content:space-between;
   align-items:center;
-  margin-bottom:12px;
-}
-
-.backlink{
-  font-weight:900;
+  gap:12px;
+  padding:14px 24px;
+  background:rgba(0,0,0,.65);
   color:#fff;
-  text-decoration:none;
+  backdrop-filter: blur(6px);
 }
 
-.title{
-  text-align:center;
-  font-size:36px;
-  font-weight:900;
+.topbar .right{
+  margin-left:auto;
 }
-
-.sub{
-  text-align:center;
-  font-size:18px;
-  margin-bottom:18px;
-}
-
-/* ===== card ===== */
-
-.card{
-  background:var(--panel);
-  border-radius:18px;
-  padding:18px;
-  backdrop-filter:blur(8px);
-}
-
-/* ===== buttons ===== */
 
 .btn{
-  padding:10px 14px;
+  padding:8px 14px;
   border-radius:999px;
-  font-weight:900;
-  border:2px solid var(--accent);
-  background:#0a0f24;
-  color:#3ecbff;
+  font-weight:700;
   cursor:pointer;
-  margin-right:8px;
 }
 
-/* ===== table ===== */
+/* ===== CARD (exact glass look) ===== */
 
-.table-wrap{
-  overflow-x:auto;
+.card{
+  max-width:1300px;
+  margin:26px auto;
+  background:rgba(255,255,255,.95);
+  border-radius:18px;
+  padding:24px;
+  box-shadow:0 25px 60px rgba(0,0,0,.35);
 }
+
+/* ===== TABLE (RIF proportions) ===== */
 
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:900px;
-}
-
-th,td{
-  padding:14px 10px;
-  border-bottom:1px solid rgba(255,255,255,.14);
+  font-size:16px; /* larger */
 }
 
 th{
+  text-align:left;
+  background:#f3f3f3;
+  font-weight:800;
+  padding:12px;
   position:sticky;
   top:0;
-  background:rgba(0,0,0,.35);
-  font-size:13px;
-  text-transform:uppercase;
 }
 
-.cell-input{
+td{
+  padding:10px;
+  border-bottom:1px solid #e5e5e5;
+}
+
+input{
   width:100%;
-  padding:12px;
-  font-size:16px; /* larger */
-  font-weight:900;
-  border-radius:10px;
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:16px; /* mobile friendly */
 }
 
-/* ===== handoff rows ===== */
+/* ===== GREEN HANDOFF ROWS ===== */
 
 .handoff td{
-  background:var(--handoff);
-  color:#000;
-  font-weight:900;
+  background:#8bc34a;
+  font-weight:800;
 }
 
-/* ===== mobile ===== */
+/* ===== MOBILE ===== */
 
 @media(max-width:900px){
-  th,td{padding:18px 12px;}
-  .cell-input{font-size:18px;}
+  table{font-size:18px;}
+  input{font-size:18px;}
 }
+
 </style>
 </head>
 
+
+
 <body>
 
-<div class="wrap">
+<!-- ===== TOP BAR (identical behavior to RIF) ===== -->
 
 <div class="topbar">
-  <a id="backBtn" class="backlink">← Back to Equipment</a>
-  <div>
-    <button class="btn" id="addRow">+ Row</button>
-    <button class="btn" id="save">Save</button>
+
+  <a id="backBtn" style="color:#fff;text-decoration:none;font-weight:700">← Back to Equipment</a>
+
+  <div class="right">
+    <button class="btn" id="addBtn">+ Row</button>
+    <button class="btn" id="saveBtn">Save</button>
     <button class="btn" onclick="window.print()">PDF</button>
   </div>
+
 </div>
 
-<div class="title">Construction Check Sheet</div>
-<div class="sub" id="eqSub"></div>
+
 
 <div class="card">
 
-<h3>Construction Items</h3>
+<h1>Construction Check Sheet</h1>
+<h3 id="equipmentLabel"></h3>
 
-<div class="table-wrap">
+<h2>Construction Items</h2>
+
 <table>
 <thead>
 <tr>
-  <th style="width:45%">Item</th>
+  <th style="width:45%">Procedure</th>
   <th style="width:15%">Sign Off</th>
   <th style="width:15%">Date</th>
   <th style="width:25%">Notes</th>
 </tr>
 </thead>
-
-<tbody id="tbody"></tbody>
+<tbody id="body"></tbody>
 </table>
-</div>
 
 </div>
-</div>
+
+
 
 <script>
 
-const qs=new URLSearchParams(location.search);
-const eq=qs.get("eq")||"";
+/* ===== ROUTING ===== */
 
-document.getElementById("eqSub").textContent="Equipment: "+eq;
+const params=new URLSearchParams(location.search);
+const eq=params.get("eq")||"";
+
+document.getElementById("equipmentLabel").textContent="Equipment: "+eq;
 document.getElementById("backBtn").href="equipment.html?eq="+encodeURIComponent(eq);
 
-const KEY="construction_v2_"+eq;
-const tbody=document.getElementById("tbody");
 
-let rows = JSON.parse(localStorage.getItem(KEY)||"null") || [
+/* ===== DATA ===== */
+
+const KEY="construction_rif_style_"+eq;
+
+let rows=JSON.parse(localStorage.getItem(KEY)||"null")||[
   {text:"RIF Completed"},
   {text:"Labels installed by QCX"},
   {text:"Phenolic"},
   {text:"Arc Flash"},
-  {text:"QCX → Construction Handoff", handoff:true},
+  {text:"QCX → Construction Handoff",handoff:true},
   {text:"Anchored & Leveled"},
   {text:"NETA Tested"},
-  {text:"Construction → QCX Final Handoff", handoff:true}
+  {text:"Construction → QCX Final Handoff",handoff:true}
 ];
 
+const body=document.getElementById("body");
+
+
+/* ===== RENDER ===== */
+
 function render(){
-  tbody.innerHTML="";
+  body.innerHTML="";
 
   rows.forEach((r,i)=>{
 
@@ -192,10 +189,10 @@ function render(){
     if(r.handoff) tr.className="handoff";
 
     tr.innerHTML=`
-      <td><input class="cell-input" value="${r.text||""}"></td>
-      <td><input class="cell-input" value="${r.sign||""}"></td>
-      <td><input class="cell-input" type="date" value="${r.date||""}"></td>
-      <td><input class="cell-input" value="${r.notes||""}"></td>
+      <td><input value="${r.text||""}"></td>
+      <td><input value="${r.sign||""}"></td>
+      <td><input type="date" value="${r.date||""}"></td>
+      <td><input value="${r.notes||""}"></td>
     `;
 
     const inputs=tr.querySelectorAll("input");
@@ -210,17 +207,20 @@ function render(){
       };
     });
 
-    tbody.appendChild(tr);
+    body.appendChild(tr);
   });
 }
+
+
+/* ===== SAVE ===== */
 
 function save(){
   localStorage.setItem(KEY,JSON.stringify(rows));
 }
 
-document.getElementById("save").onclick=save;
+document.getElementById("saveBtn").onclick=save;
 
-document.getElementById("addRow").onclick=()=>{
+document.getElementById("addBtn").onclick=()=>{
   rows.push({text:"New Item"});
   render();
   save();
