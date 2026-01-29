@@ -1,4 +1,4 @@
-<!-- equipment.html (FULL DROP-IN) — FIX: Removed Equipment Image upload/preview from Equipment Page ONLY -->
+<!-- equipment.html (FULL DROP-IN) — FIX: Pre-FOD now routes to form.html?id=prefod (so it shows buttons + Export PDF) -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -445,9 +445,21 @@
     {id:"fpv_photo",btn:"finishedPhotoBtn"}
   ];
 
+  /* ============================
+     FIX: Pre-FOD should open window.FORMS page (form.html?id=prefod)
+     so it shows the new HTML/buttons (including Export PDF / Package Export)
+     Everything else remains task.html based.
+     ============================ */
   taskSteps.forEach(s=>{
     const el = document.getElementById(s.btn);
-    if (el) el.href = taskLink(s.id);
+    if (!el) return;
+
+    if (s.id === "prefod"){
+      el.href = `form.html?id=prefod${eq ? `&eq=${encodeURIComponent(eq)}` : ""}`;
+      return;
+    }
+
+    el.href = taskLink(s.id);
   });
 
   // CHANGE: finished photo goes direct to the capture page (not task.html)
