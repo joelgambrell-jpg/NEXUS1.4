@@ -105,11 +105,10 @@ window.FORMS = {
   },
 
   transformer: {
-    title: "Transformer",
-    sectionTitle: "Transformer",
+    title: "Diagram Image",
+    sectionTitle: "Diagram",
     backgroundImage: "transformer.jpg",
-    completedKey: "transformerViewed",
-    imageUrl: "single_line.png",
+    completedKey: "DiagramViewed",
     magnifier: true,
     zoom: 4
   },
