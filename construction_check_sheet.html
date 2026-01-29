@@ -5,90 +5,288 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Construction Check Sheet</title>
 
-  <!-- Use the same global styling + behavior as the rest of the site -->
+  <!-- Global NEXUS -->
   <link rel="stylesheet" href="assets/css/nexus-core.css" />
   <script defer src="assets/js/nexus-core.js"></script>
   <script defer src="assets/js/nexus-firebase-bridge.js"></script>
+
+  <style>
+    /* ===== table behavior ===== */
+
+    .table-wrap{
+      overflow:auto;
+      max-height:75vh;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:#fff;
+      font-size:13px;
+    }
+
+    th, td{
+      border:1px solid #ddd;
+      padding:6px 8px;
+      min-width:110px;
+      vertical-align:top;
+    }
+
+    /* sticky header */
+    th{
+      position:sticky;
+      top:0;
+      background:#f2f2f2;
+      z-index:5;
+    }
+
+    /* editable cells */
+    td[contenteditable]{
+      white-space:pre-wrap;
+      word-break:break-word;
+      min-height:28px;
+    }
+
+    /* auto grow */
+    td[contenteditable]:focus{
+      outline:2px solid #4caf50;
+      background:#f6fff6;
+    }
+
+    /* changed highlight */
+    td.changed{
+      background:#fff9c4;
+    }
+
+    /* lock mode */
+    .locked td[contenteditable]{
+      background:#f7f7f7;
+      pointer-events:none;
+    }
+
+    /* toolbar */
+    .toolbar{
+      display:flex;
+      gap:8px;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+
+    .toolbar button{
+      padding:6px 10px;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    .status{
+      margin-left:auto;
+      font-size:12px;
+      font-weight:700;
+      align-self:center;
+    }
+
+    /* mobile stack */
+    @media (max-width: 768px){
+      td, th{
+        min-width:80px;
+        font-size:12px;
+      }
+    }
+
+    /* print friendly */
+    @media print{
+      .toolbar, .back-link{
+        display:none;
+      }
+      .table-wrap{
+        max-height:none;
+        overflow:visible;
+      }
+    }
+  </style>
 </head>
 
 <body class="nexus-bg">
-  <div class="page-shell">
-    <!-- Back -->
-    <div class="back-link">
-      <a id="backBtn" href="equipment.html">← Back to Equipment</a>
-    </div>
+<div class="page-shell">
 
-    <!-- Main card -->
-    <div class="card">
-      <h1>Construction Check Sheet</h1>
-      <h3 id="equipmentLabel"></h3>
-
-      <!-- IMPORTANT: this wrapper lets your existing CSS control the table look -->
-      <div>
-        <table>
-          <tbody id="constructionBody">
-<tr><th>LV Transformer 001</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr>
-<tr><td contenteditable="true" data-r="1" data-c="0"></td><td contenteditable="true" data-r="1" data-c="1"></td><td contenteditable="true" data-r="1" data-c="2"></td><td contenteditable="true" data-r="1" data-c="3"></td><td contenteditable="true" data-r="1" data-c="4"></td><td contenteditable="true" data-r="1" data-c="5"></td><td contenteditable="true" data-r="1" data-c="6"></td><td contenteditable="true" data-r="1" data-c="7"></td><td contenteditable="true" data-r="1" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="2" data-c="0">Building Number</td><td contenteditable="true" data-r="2" data-c="1"></td><td contenteditable="true" data-r="2" data-c="2"></td><td contenteditable="true" data-r="2" data-c="3"></td><td contenteditable="true" data-r="2" data-c="4"></td><td contenteditable="true" data-r="2" data-c="5"></td><td contenteditable="true" data-r="2" data-c="6"></td><td contenteditable="true" data-r="2" data-c="7"></td><td contenteditable="true" data-r="2" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="3" data-c="0">Phase</td><td contenteditable="true" data-r="3" data-c="1"></td><td contenteditable="true" data-r="3" data-c="2"></td><td contenteditable="true" data-r="3" data-c="3"></td><td contenteditable="true" data-r="3" data-c="4"></td><td contenteditable="true" data-r="3" data-c="5"></td><td contenteditable="true" data-r="3" data-c="6"></td><td contenteditable="true" data-r="3" data-c="7"></td><td contenteditable="true" data-r="3" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="4" data-c="0">Foreman:</td><td contenteditable="true" data-r="4" data-c="1"></td><td contenteditable="true" data-r="4" data-c="2"></td><td contenteditable="true" data-r="4" data-c="3"></td><td contenteditable="true" data-r="4" data-c="4">Equip ID:</td><td contenteditable="true" data-r="4" data-c="5"></td><td contenteditable="true" data-r="4" data-c="6"></td><td contenteditable="true" data-r="4" data-c="7"></td><td contenteditable="true" data-r="4" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="5" data-c="0">Equipment Information:</td><td contenteditable="true" data-r="5" data-c="1"></td><td contenteditable="true" data-r="5" data-c="2"></td><td contenteditable="true" data-r="5" data-c="3"></td><td contenteditable="true" data-r="5" data-c="4"></td><td contenteditable="true" data-r="5" data-c="5"></td><td contenteditable="true" data-r="5" data-c="6">Date</td><td contenteditable="true" data-r="5" data-c="7">Int.</td><td contenteditable="true" data-r="5" data-c="8">Notes</td></tr>
-<tr><td contenteditable="true" data-r="6" data-c="0">RIF Completed</td><td contenteditable="true" data-r="6" data-c="1"></td><td contenteditable="true" data-r="6" data-c="2"></td><td contenteditable="true" data-r="6" data-c="3"></td><td contenteditable="true" data-r="6" data-c="4"></td><td contenteditable="true" data-r="6" data-c="5"></td><td contenteditable="true" data-r="6" data-c="6"></td><td contenteditable="true" data-r="6" data-c="7"></td><td contenteditable="true" data-r="6" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="7" data-c="0">Labels installed by QCX:</td><td contenteditable="true" data-r="7" data-c="1"></td><td contenteditable="true" data-r="7" data-c="2"></td><td contenteditable="true" data-r="7" data-c="3"></td><td contenteditable="true" data-r="7" data-c="4"></td><td contenteditable="true" data-r="7" data-c="5"></td><td contenteditable="true" data-r="7" data-c="6"></td><td contenteditable="true" data-r="7" data-c="7"></td><td contenteditable="true" data-r="7" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="8" data-c="0">Phenolic</td><td contenteditable="true" data-r="8" data-c="1"></td><td contenteditable="true" data-r="8" data-c="2"></td><td contenteditable="true" data-r="8" data-c="3"></td><td contenteditable="true" data-r="8" data-c="4"></td><td contenteditable="true" data-r="8" data-c="5"></td><td contenteditable="true" data-r="8" data-c="6"></td><td contenteditable="true" data-r="8" data-c="7"></td><td contenteditable="true" data-r="8" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="9" data-c="0">Arc Flash</td><td contenteditable="true" data-r="9" data-c="1"></td><td contenteditable="true" data-r="9" data-c="2"></td><td contenteditable="true" data-r="9" data-c="3"></td><td contenteditable="true" data-r="9" data-c="4"></td><td contenteditable="true" data-r="9" data-c="5"></td><td contenteditable="true" data-r="9" data-c="6"></td><td contenteditable="true" data-r="9" data-c="7"></td><td contenteditable="true" data-r="9" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="10" data-c="0"></td><td contenteditable="true" data-r="10" data-c="1"></td><td contenteditable="true" data-r="10" data-c="2"></td><td contenteditable="true" data-r="10" data-c="3"></td><td contenteditable="true" data-r="10" data-c="4"></td><td contenteditable="true" data-r="10" data-c="5"></td><td contenteditable="true" data-r="10" data-c="6"></td><td contenteditable="true" data-r="10" data-c="7"></td><td contenteditable="true" data-r="10" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="11" data-c="0">QCX</td><td contenteditable="true" data-r="11" data-c="1"></td><td contenteditable="true" data-r="11" data-c="2"></td><td contenteditable="true" data-r="11" data-c="3"></td><td contenteditable="true" data-r="11" data-c="4"></td><td contenteditable="true" data-r="11" data-c="5"></td><td contenteditable="true" data-r="11" data-c="6"></td><td contenteditable="true" data-r="11" data-c="7"></td><td contenteditable="true" data-r="11" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="12" data-c="0">Equipment Mounted / Installation Specs</td><td contenteditable="true" data-r="12" data-c="1"></td><td contenteditable="true" data-r="12" data-c="2"></td><td contenteditable="true" data-r="12" data-c="3"></td><td contenteditable="true" data-r="12" data-c="4"></td><td contenteditable="true" data-r="12" data-c="5"></td><td contenteditable="true" data-r="12" data-c="6"></td><td contenteditable="true" data-r="12" data-c="7"></td><td contenteditable="true" data-r="12" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="13" data-c="0">6&quot; clearance from walls and panels</td><td contenteditable="true" data-r="13" data-c="1"></td><td contenteditable="true" data-r="13" data-c="2"></td><td contenteditable="true" data-r="13" data-c="3"></td><td contenteditable="true" data-r="13" data-c="4"></td><td contenteditable="true" data-r="13" data-c="5"></td><td contenteditable="true" data-r="13" data-c="6"></td><td contenteditable="true" data-r="13" data-c="7"></td><td contenteditable="true" data-r="13" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="14" data-c="0">Remove front cover bolts, bag &amp; tag, leaving proper amount of bolts to hold cover in place</td><td contenteditable="true" data-r="14" data-c="1"></td><td contenteditable="true" data-r="14" data-c="2"></td><td contenteditable="true" data-r="14" data-c="3"></td><td contenteditable="true" data-r="14" data-c="4"></td><td contenteditable="true" data-r="14" data-c="5"></td><td contenteditable="true" data-r="14" data-c="6"></td><td contenteditable="true" data-r="14" data-c="7"></td><td contenteditable="true" data-r="14" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="15" data-c="0">Shipping assembly (if required)</td><td contenteditable="true" data-r="15" data-c="1"></td><td contenteditable="true" data-r="15" data-c="2"></td><td contenteditable="true" data-r="15" data-c="3"></td><td contenteditable="true" data-r="15" data-c="4"></td><td contenteditable="true" data-r="15" data-c="5"></td><td contenteditable="true" data-r="15" data-c="6"></td><td contenteditable="true" data-r="15" data-c="7"></td><td contenteditable="true" data-r="15" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="16" data-c="0">Apply proper cover for equipment protection</td><td contenteditable="true" data-r="16" data-c="1"></td><td contenteditable="true" data-r="16" data-c="2"></td><td contenteditable="true" data-r="16" data-c="3"></td><td contenteditable="true" data-r="16" data-c="4"></td><td contenteditable="true" data-r="16" data-c="5"></td><td contenteditable="true" data-r="16" data-c="6"></td><td contenteditable="true" data-r="16" data-c="7"></td><td contenteditable="true" data-r="16" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="17" data-c="0">Anchored using 1/2&quot; concrete wedge anchors</td><td contenteditable="true" data-r="17" data-c="1"></td><td contenteditable="true" data-r="17" data-c="2"></td><td contenteditable="true" data-r="17" data-c="3"></td><td contenteditable="true" data-r="17" data-c="4"></td><td contenteditable="true" data-r="17" data-c="5"></td><td contenteditable="true" data-r="17" data-c="6"></td><td contenteditable="true" data-r="17" data-c="7"></td><td contenteditable="true" data-r="17" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="18" data-c="0">Housing is mounted squared and leveled</td><td contenteditable="true" data-r="18" data-c="1"></td><td contenteditable="true" data-r="18" data-c="2"></td><td contenteditable="true" data-r="18" data-c="3"></td><td contenteditable="true" data-r="18" data-c="4"></td><td contenteditable="true" data-r="18" data-c="5"></td><td contenteditable="true" data-r="18" data-c="6"></td><td contenteditable="true" data-r="18" data-c="7"></td><td contenteditable="true" data-r="18" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="19" data-c="0">XFMR Neta Tested (validated by QCx)</td><td contenteditable="true" data-r="19" data-c="1"></td><td contenteditable="true" data-r="19" data-c="2"></td><td contenteditable="true" data-r="19" data-c="3"></td><td contenteditable="true" data-r="19" data-c="4"></td><td contenteditable="true" data-r="19" data-c="5"></td><td contenteditable="true" data-r="19" data-c="6"></td><td contenteditable="true" data-r="19" data-c="7"></td><td contenteditable="true" data-r="19" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="20" data-c="0"></td><td contenteditable="true" data-r="20" data-c="1"></td><td contenteditable="true" data-r="20" data-c="2"></td><td contenteditable="true" data-r="20" data-c="3"></td><td contenteditable="true" data-r="20" data-c="4"></td><td contenteditable="true" data-r="20" data-c="5"></td><td contenteditable="true" data-r="20" data-c="6"></td><td contenteditable="true" data-r="20" data-c="7"></td><td contenteditable="true" data-r="20" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="21" data-c="0">QCX Handoff to Construction</td><td contenteditable="true" data-r="21" data-c="1"></td><td contenteditable="true" data-r="21" data-c="2"></td><td contenteditable="true" data-r="21" data-c="3"></td><td contenteditable="true" data-r="21" data-c="4"></td><td contenteditable="true" data-r="21" data-c="5"></td><td contenteditable="true" data-r="21" data-c="6"></td><td contenteditable="true" data-r="21" data-c="7"></td><td contenteditable="true" data-r="21" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="22" data-c="0">Internal Wiring and Termination Specifications</td><td contenteditable="true" data-r="22" data-c="1"></td><td contenteditable="true" data-r="22" data-c="2"></td><td contenteditable="true" data-r="22" data-c="3"></td><td contenteditable="true" data-r="22" data-c="4"></td><td contenteditable="true" data-r="22" data-c="5"></td><td contenteditable="true" data-r="22" data-c="6"></td><td contenteditable="true" data-r="22" data-c="7"></td><td contenteditable="true" data-r="22" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="23" data-c="0">1. Hardware Installation:</td><td contenteditable="true" data-r="23" data-c="1"></td><td contenteditable="true" data-r="23" data-c="2"></td><td contenteditable="true" data-r="23" data-c="3"></td><td contenteditable="true" data-r="23" data-c="4"></td><td contenteditable="true" data-r="23" data-c="5"></td><td contenteditable="true" data-r="23" data-c="6"></td><td contenteditable="true" data-r="23" data-c="7"></td><td contenteditable="true" data-r="23" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="24" data-c="0">Install proper/correct phase lugs (with min 1&quot; gap from nearest item)</td><td contenteditable="true" data-r="24" data-c="1"></td><td contenteditable="true" data-r="24" data-c="2"></td><td contenteditable="true" data-r="24" data-c="3"></td><td contenteditable="true" data-r="24" data-c="4"></td><td contenteditable="true" data-r="24" data-c="5"></td><td contenteditable="true" data-r="24" data-c="6"></td><td contenteditable="true" data-r="24" data-c="7"></td><td contenteditable="true" data-r="24" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="25" data-c="0">Install proper ground bar (if required)</td><td contenteditable="true" data-r="25" data-c="1"></td><td contenteditable="true" data-r="25" data-c="2"></td><td contenteditable="true" data-r="25" data-c="3"></td><td contenteditable="true" data-r="25" data-c="4"></td><td contenteditable="true" data-r="25" data-c="5"></td><td contenteditable="true" data-r="25" data-c="6"></td><td contenteditable="true" data-r="25" data-c="7"></td><td contenteditable="true" data-r="25" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="26" data-c="0">2. Primary / High Side:</td><td contenteditable="true" data-r="26" data-c="1"></td><td contenteditable="true" data-r="26" data-c="2"></td><td contenteditable="true" data-r="26" data-c="3"></td><td contenteditable="true" data-r="26" data-c="4"></td><td contenteditable="true" data-r="26" data-c="5"></td><td contenteditable="true" data-r="26" data-c="6"></td><td contenteditable="true" data-r="26" data-c="7"></td><td contenteditable="true" data-r="26" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="27" data-c="0">Primary wire matches 1 Line Diagram: (3) AL #1/0 and 1 CU #6 Ground (A100.3)</td><td contenteditable="true" data-r="27" data-c="1"></td><td contenteditable="true" data-r="27" data-c="2"></td><td contenteditable="true" data-r="27" data-c="3"></td><td contenteditable="true" data-r="27" data-c="4"></td><td contenteditable="true" data-r="27" data-c="5"></td><td contenteditable="true" data-r="27" data-c="6"></td><td contenteditable="true" data-r="27" data-c="7"></td><td contenteditable="true" data-r="27" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="28" data-c="0"></td><td contenteditable="true" data-r="28" data-c="1"></td><td contenteditable="true" data-r="28" data-c="2"></td><td contenteditable="true" data-r="28" data-c="3"></td><td contenteditable="true" data-r="28" data-c="4"></td><td contenteditable="true" data-r="28" data-c="5"></td><td contenteditable="true" data-r="28" data-c="6"></td><td contenteditable="true" data-r="28" data-c="7"></td><td contenteditable="true" data-r="28" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="29" data-c="0">Verify primary wire phase color: H1/A-Brown H2/B-Orange H3/C-Yellow Ground-Green</td><td contenteditable="true" data-r="29" data-c="1"></td><td contenteditable="true" data-r="29" data-c="2"></td><td contenteditable="true" data-r="29" data-c="3"></td><td contenteditable="true" data-r="29" data-c="4"></td><td contenteditable="true" data-r="29" data-c="5"></td><td contenteditable="true" data-r="29" data-c="6"></td><td contenteditable="true" data-r="29" data-c="7"></td><td contenteditable="true" data-r="29" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="30" data-c="0"></td><td contenteditable="true" data-r="30" data-c="1"></td><td contenteditable="true" data-r="30" data-c="2"></td><td contenteditable="true" data-r="30" data-c="3"></td><td contenteditable="true" data-r="30" data-c="4"></td><td contenteditable="true" data-r="30" data-c="5"></td><td contenteditable="true" data-r="30" data-c="6"></td><td contenteditable="true" data-r="30" data-c="7"></td><td contenteditable="true" data-r="30" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="31" data-c="0">Verify installation and termination of ground bonding bushing</td><td contenteditable="true" data-r="31" data-c="1"></td><td contenteditable="true" data-r="31" data-c="2"></td><td contenteditable="true" data-r="31" data-c="3"></td><td contenteditable="true" data-r="31" data-c="4"></td><td contenteditable="true" data-r="31" data-c="5"></td><td contenteditable="true" data-r="31" data-c="6"></td><td contenteditable="true" data-r="31" data-c="7"></td><td contenteditable="true" data-r="31" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="32" data-c="0">3. Secondary / Low Side:</td><td contenteditable="true" data-r="32" data-c="1"></td><td contenteditable="true" data-r="32" data-c="2"></td><td contenteditable="true" data-r="32" data-c="3"></td><td contenteditable="true" data-r="32" data-c="4"></td><td contenteditable="true" data-r="32" data-c="5"></td><td contenteditable="true" data-r="32" data-c="6"></td><td contenteditable="true" data-r="32" data-c="7"></td><td contenteditable="true" data-r="32" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="33" data-c="0">Secondary wire matches 1 Line Diagram: (3) AL # 1/0 and Ground 1 CU #6 (A100.3) Neutral wire AL # 1/0 (A110.T)</td><td contenteditable="true" data-r="33" data-c="1"></td><td contenteditable="true" data-r="33" data-c="2"></td><td contenteditable="true" data-r="33" data-c="3"></td><td contenteditable="true" data-r="33" data-c="4"></td><td contenteditable="true" data-r="33" data-c="5"></td><td contenteditable="true" data-r="33" data-c="6"></td><td contenteditable="true" data-r="33" data-c="7"></td><td contenteditable="true" data-r="33" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="34" data-c="0"></td><td contenteditable="true" data-r="34" data-c="1"></td><td contenteditable="true" data-r="34" data-c="2"></td><td contenteditable="true" data-r="34" data-c="3"></td><td contenteditable="true" data-r="34" data-c="4"></td><td contenteditable="true" data-r="34" data-c="5"></td><td contenteditable="true" data-r="34" data-c="6"></td><td contenteditable="true" data-r="34" data-c="7"></td><td contenteditable="true" data-r="34" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="35" data-c="0">Verify secondary wire phase color: X1/A-Black X2/B-Red X3/C-Blue Ground-Green Neutral-White</td><td contenteditable="true" data-r="35" data-c="1"></td><td contenteditable="true" data-r="35" data-c="2"></td><td contenteditable="true" data-r="35" data-c="3"></td><td contenteditable="true" data-r="35" data-c="4"></td><td contenteditable="true" data-r="35" data-c="5"></td><td contenteditable="true" data-r="35" data-c="6"></td><td contenteditable="true" data-r="35" data-c="7"></td><td contenteditable="true" data-r="35" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="36" data-c="0"></td><td contenteditable="true" data-r="36" data-c="1"></td><td contenteditable="true" data-r="36" data-c="2"></td><td contenteditable="true" data-r="36" data-c="3"></td><td contenteditable="true" data-r="36" data-c="4"></td><td contenteditable="true" data-r="36" data-c="5"></td><td contenteditable="true" data-r="36" data-c="6"></td><td contenteditable="true" data-r="36" data-c="7"></td><td contenteditable="true" data-r="36" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="37" data-c="0">Verify installation and termination of ground bonding bushing</td><td contenteditable="true" data-r="37" data-c="1"></td><td contenteditable="true" data-r="37" data-c="2"></td><td contenteditable="true" data-r="37" data-c="3"></td><td contenteditable="true" data-r="37" data-c="4"></td><td contenteditable="true" data-r="37" data-c="5"></td><td contenteditable="true" data-r="37" data-c="6"></td><td contenteditable="true" data-r="37" data-c="7"></td><td contenteditable="true" data-r="37" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="38" data-c="0">4. Building Steel:</td><td contenteditable="true" data-r="38" data-c="1"></td><td contenteditable="true" data-r="38" data-c="2"></td><td contenteditable="true" data-r="38" data-c="3"></td><td contenteditable="true" data-r="38" data-c="4"></td><td contenteditable="true" data-r="38" data-c="5"></td><td contenteditable="true" data-r="38" data-c="6"></td><td contenteditable="true" data-r="38" data-c="7"></td><td contenteditable="true" data-r="38" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="39" data-c="0">Verify that ground is #8 copper or larger</td><td contenteditable="true" data-r="39" data-c="1"></td><td contenteditable="true" data-r="39" data-c="2"></td><td contenteditable="true" data-r="39" data-c="3"></td><td contenteditable="true" data-r="39" data-c="4"></td><td contenteditable="true" data-r="39" data-c="5"></td><td contenteditable="true" data-r="39" data-c="6"></td><td contenteditable="true" data-r="39" data-c="7"></td><td contenteditable="true" data-r="39" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="40" data-c="0">5. Bonding Jumper:</td><td contenteditable="true" data-r="40" data-c="1"></td><td contenteditable="true" data-r="40" data-c="2"></td><td contenteditable="true" data-r="40" data-c="3"></td><td contenteditable="true" data-r="40" data-c="4"></td><td contenteditable="true" data-r="40" data-c="5"></td><td contenteditable="true" data-r="40" data-c="6"></td><td contenteditable="true" data-r="40" data-c="7"></td><td contenteditable="true" data-r="40" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="41" data-c="0">Bonding jumper must be AL # 1/0 wire (or same size as biggest conducter on pri. or sec.) and all black</td><td contenteditable="true" data-r="41" data-c="1"></td><td contenteditable="true" data-r="41" data-c="2"></td><td contenteditable="true" data-r="41" data-c="3"></td><td contenteditable="true" data-r="41" data-c="4"></td><td contenteditable="true" data-r="41" data-c="5"></td><td contenteditable="true" data-r="41" data-c="6"></td><td contenteditable="true" data-r="41" data-c="7"></td><td contenteditable="true" data-r="41" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="42" data-c="0"></td><td contenteditable="true" data-r="42" data-c="1"></td><td contenteditable="true" data-r="42" data-c="2"></td><td contenteditable="true" data-r="42" data-c="3"></td><td contenteditable="true" data-r="42" data-c="4"></td><td contenteditable="true" data-r="42" data-c="5"></td><td contenteditable="true" data-r="42" data-c="6"></td><td contenteditable="true" data-r="42" data-c="7"></td><td contenteditable="true" data-r="42" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="43" data-c="0">6. Verify hardware kit matches attached inventory sheet</td><td contenteditable="true" data-r="43" data-c="1"></td><td contenteditable="true" data-r="43" data-c="2"></td><td contenteditable="true" data-r="43" data-c="3"></td><td contenteditable="true" data-r="43" data-c="4"></td><td contenteditable="true" data-r="43" data-c="5"></td><td contenteditable="true" data-r="43" data-c="6"></td><td contenteditable="true" data-r="43" data-c="7"></td><td contenteditable="true" data-r="43" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="44" data-c="0">7. Install front cover with all hardware</td><td contenteditable="true" data-r="44" data-c="1"></td><td contenteditable="true" data-r="44" data-c="2"></td><td contenteditable="true" data-r="44" data-c="3"></td><td contenteditable="true" data-r="44" data-c="4"></td><td contenteditable="true" data-r="44" data-c="5"></td><td contenteditable="true" data-r="44" data-c="6"></td><td contenteditable="true" data-r="44" data-c="7"></td><td contenteditable="true" data-r="44" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="45" data-c="0"></td><td contenteditable="true" data-r="45" data-c="1"></td><td contenteditable="true" data-r="45" data-c="2"></td><td contenteditable="true" data-r="45" data-c="3"></td><td contenteditable="true" data-r="45" data-c="4"></td><td contenteditable="true" data-r="45" data-c="5"></td><td contenteditable="true" data-r="45" data-c="6"></td><td contenteditable="true" data-r="45" data-c="7"></td><td contenteditable="true" data-r="45" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="46" data-c="0">Foreman in charge verify all complete and handoff to QCX</td><td contenteditable="true" data-r="46" data-c="1"></td><td contenteditable="true" data-r="46" data-c="2"></td><td contenteditable="true" data-r="46" data-c="3"></td><td contenteditable="true" data-r="46" data-c="4"></td><td contenteditable="true" data-r="46" data-c="5"></td><td contenteditable="true" data-r="46" data-c="6"></td><td contenteditable="true" data-r="46" data-c="7"></td><td contenteditable="true" data-r="46" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="47" data-c="0">Construction Foreman Name:</td><td contenteditable="true" data-r="47" data-c="1"></td><td contenteditable="true" data-r="47" data-c="2"></td><td contenteditable="true" data-r="47" data-c="3"></td><td contenteditable="true" data-r="47" data-c="4"></td><td contenteditable="true" data-r="47" data-c="5"></td><td contenteditable="true" data-r="47" data-c="6"></td><td contenteditable="true" data-r="47" data-c="7"></td><td contenteditable="true" data-r="47" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="48" data-c="0">QCX Foreman Name:</td><td contenteditable="true" data-r="48" data-c="1"></td><td contenteditable="true" data-r="48" data-c="2"></td><td contenteditable="true" data-r="48" data-c="3"></td><td contenteditable="true" data-r="48" data-c="4"></td><td contenteditable="true" data-r="48" data-c="5"></td><td contenteditable="true" data-r="48" data-c="6"></td><td contenteditable="true" data-r="48" data-c="7"></td><td contenteditable="true" data-r="48" data-c="8"></td></tr>
-<tr><td contenteditable="true" data-r="49" data-c="0">Date:</td><td contenteditable="true" data-r="49" data-c="1"></td><td contenteditable="true" data-r="49" data-c="2"></td><td contenteditable="true" data-r="49" data-c="3"></td><td contenteditable="true" data-r="49" data-c="4"></td><td contenteditable="true" data-r="49" data-c="5"></td><td contenteditable="true" data-r="49" data-c="6"></td><td contenteditable="true" data-r="49" data-c="7"></td><td contenteditable="true" data-r="49" data-c="8"></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+  <div class="back-link">
+    <a id="backBtn" href="equipment.html">← Back to Equipment</a>
   </div>
 
-  <script>
-    // Preserve equipment id routing like the rest of your site
-    const params = new URLSearchParams(window.location.search);
-    const eq = params.get("eq") || "";
-    document.getElementById("equipmentLabel").textContent = eq ? ("Equipment: " + eq) : "";
-    document.getElementById("backBtn").href = "equipment.html" + (eq ? ("?eq=" + encodeURIComponent(eq)) : "");
-  </script>
+  <div class="card">
+    <h1>Construction Check Sheet</h1>
+    <h3 id="equipmentLabel"></h3>
+
+    <!-- ===== Toolbar ===== -->
+    <div class="toolbar">
+      <button id="lockBtn">🔒 Lock</button>
+      <button id="exportJson">Export JSON</button>
+      <button id="exportCsv">Export CSV/Excel</button>
+      <button onclick="window.print()">Print/PDF</button>
+      <button id="clearBtn">Clear</button>
+      <span id="saveStatus" class="status">Saved</span>
+    </div>
+
+    <div class="table-wrap">
+      <table id="sheet">
+        <tbody id="constructionBody">
+
+          <!-- Sticky title row -->
+          <tr>
+            <th colspan="9">LV Transformer 001</th>
+          </tr>
+
+          <!-- ======= KEEP ALL YOUR ROWS EXACTLY AS THEY ARE BELOW ======= -->
+          <!-- (paste your full existing rows here unchanged) -->
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===============================
+   EQUIPMENT ROUTING
+================================= */
+const params = new URLSearchParams(window.location.search);
+const eq = params.get("eq") || "default";
+
+document.getElementById("equipmentLabel").textContent =
+  eq ? "Equipment: " + eq : "";
+
+document.getElementById("backBtn").href =
+  "equipment.html" + (eq ? "?eq=" + encodeURIComponent(eq) : "");
+
+
+/* ===============================
+   SAVE SYSTEM (local + firebase ready)
+================================= */
+
+const SAVE_KEY = "construction:" + eq;
+const statusEl = document.getElementById("saveStatus");
+const body = document.getElementById("constructionBody");
+
+const cells = () => [...body.querySelectorAll("td[contenteditable]")];
+
+function snapshot(){
+  const data = {};
+  cells().forEach(td=>{
+    const key = td.dataset.r + ":" + td.dataset.c;
+    data[key] = td.textContent;
+  });
+  return data;
+}
+
+function apply(data){
+  cells().forEach(td=>{
+    const key = td.dataset.r + ":" + td.dataset.c;
+    td.textContent = data[key] || "";
+  });
+}
+
+function saveLocal(){
+  localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot()));
+  statusEl.textContent = "Saved";
+}
+
+function loadLocal(){
+  const raw = localStorage.getItem(SAVE_KEY);
+  if(raw) apply(JSON.parse(raw));
+}
+
+/* Firebase hook placeholder */
+function saveFirebase(data){
+  if(window.nexusFirebaseSave){
+    window.nexusFirebaseSave("construction", eq, data);
+  }
+}
+
+function saveAll(){
+  const data = snapshot();
+  saveLocal();
+  saveFirebase(data);
+}
+
+/* autosave */
+let timer;
+function queueSave(){
+  statusEl.textContent = "Saving…";
+  clearTimeout(timer);
+  timer = setTimeout(saveAll, 400);
+}
+
+/* ===============================
+   EDIT BEHAVIOR
+================================= */
+
+cells().forEach(td=>{
+  td.addEventListener("input", ()=>{
+    td.classList.add("changed");
+    queueSave();
+  });
+
+  /* Tab / Enter navigation */
+  td.addEventListener("keydown", e=>{
+    if(e.key==="Enter"){
+      e.preventDefault();
+      const next = td.parentElement.nextElementSibling?.querySelector("td[contenteditable]");
+      next?.focus();
+    }
+  });
+});
+
+/* ===============================
+   LOCK / UNLOCK
+================================= */
+
+let locked=false;
+const lockBtn = document.getElementById("lockBtn");
+
+lockBtn.onclick = ()=>{
+  locked=!locked;
+  document.getElementById("sheet").classList.toggle("locked", locked);
+  lockBtn.textContent = locked ? "🔓 Unlock" : "🔒 Lock";
+};
+
+/* ===============================
+   EXPORT
+================================= */
+
+document.getElementById("exportJson").onclick = ()=>{
+  const blob = new Blob([JSON.stringify(snapshot(),null,2)],{type:"application/json"});
+  download(blob,"construction.json");
+};
+
+document.getElementById("exportCsv").onclick = ()=>{
+  const rows=[...body.querySelectorAll("tr")];
+  const csv = rows.map(r=>[...r.children].map(c=>`"${c.textContent.replace(/"/g,'""')}"`).join(",")).join("\n");
+  download(new Blob([csv]),"construction.csv");
+};
+
+function download(blob,name){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=name;
+  a.click();
+}
+
+/* ===============================
+   CLEAR
+================================= */
+
+document.getElementById("clearBtn").onclick = ()=>{
+  if(!confirm("Clear all data?")) return;
+  cells().forEach(td=>td.textContent="");
+  saveAll();
+};
+
+/* ===============================
+   INIT
+================================= */
+
+loadLocal();
+</script>
+
 </body>
 </html>
