@@ -751,19 +751,26 @@
       tdNotes.appendChild(notes);
       tr.appendChild(tdNotes);
 
-      // Construction signoff (initials + date)
+      // Signoff columns:
+      // - WHITE rows (handoff=false): single unlabeled signoff + date (uses consInit/consDate)
+      // - GREEN rows (handoff=true): retain current two-signoff function (Construction + QCx)
+
+      // Construction signoff (always present; unlabeled for white rows on desktop)
       const tdCons = document.createElement("td");
       tdCons.className = "col-sign";
+
       if(window.matchMedia("(max-width: 860px)").matches){
         const lab = document.createElement("span");
         lab.className = "mobile-label";
-        lab.textContent = "Construction Sign-Off";
+        lab.textContent = row.handoff ? "Construction Sign-Off" : "Sign-Off";
         tdCons.appendChild(lab);
       } else {
-        const lab = document.createElement("div");
-        lab.className = "tiny-label";
-        lab.textContent = "Construction";
-        tdCons.appendChild(lab);
+        if(row.handoff){
+          const lab = document.createElement("div");
+          lab.className = "tiny-label";
+          lab.textContent = "Construction";
+          tdCons.appendChild(lab);
+        }
       }
 
       const consPack = document.createElement("div");
@@ -785,38 +792,47 @@
       tdCons.appendChild(consPack);
       tr.appendChild(tdCons);
 
-      // QCx signoff (initials + date)
+      // QCx signoff
       const tdQcx = document.createElement("td");
       tdQcx.className = "col-date";
-      if(window.matchMedia("(max-width: 860px)").matches){
-        const lab = document.createElement("span");
-        lab.className = "mobile-label";
-        lab.textContent = "QCx Sign-Off";
-        tdQcx.appendChild(lab);
+
+      if(row.handoff){
+        // GREEN rows: keep QCx label + inputs
+        if(window.matchMedia("(max-width: 860px)").matches){
+          const lab = document.createElement("span");
+          lab.className = "mobile-label";
+          lab.textContent = "QCx Sign-Off";
+          tdQcx.appendChild(lab);
+        } else {
+          const lab = document.createElement("div");
+          lab.className = "tiny-label";
+          lab.textContent = "QCx";
+          tdQcx.appendChild(lab);
+        }
+
+        const qcxPack = document.createElement("div");
+        qcxPack.className = "sign-pack";
+        const qcxInit = document.createElement("input");
+        qcxInit.className = "cell-init";
+        qcxInit.placeholder = "Initials";
+        qcxInit.value = row.qcxInit || "";
+        qcxInit.addEventListener("input", ()=>{ row.qcxInit = qcxInit.value; qcxInit.classList.add("changed"); markDirty(); });
+
+        const qcxDate = document.createElement("input");
+        qcxDate.className = "cell-date";
+        qcxDate.type = "date";
+        qcxDate.value = row.qcxDate || "";
+        qcxDate.addEventListener("input", ()=>{ row.qcxDate = qcxDate.value; qcxDate.classList.add("changed"); markDirty(); });
+
+        qcxPack.appendChild(qcxInit);
+        qcxPack.appendChild(qcxDate);
+        tdQcx.appendChild(qcxPack);
       } else {
-        const lab = document.createElement("div");
-        lab.className = "tiny-label";
-        lab.textContent = "QCx";
-        tdQcx.appendChild(lab);
+        // WHITE rows: no second signoff. Leave cell empty to preserve table layout.
+        // (No labels, no inputs.)
+        tdQcx.innerHTML = "";
       }
 
-      const qcxPack = document.createElement("div");
-      qcxPack.className = "sign-pack";
-      const qcxInit = document.createElement("input");
-      qcxInit.className = "cell-init";
-      qcxInit.placeholder = "Initials";
-      qcxInit.value = row.qcxInit || "";
-      qcxInit.addEventListener("input", ()=>{ row.qcxInit = qcxInit.value; qcxInit.classList.add("changed"); markDirty(); });
-
-      const qcxDate = document.createElement("input");
-      qcxDate.className = "cell-date";
-      qcxDate.type = "date";
-      qcxDate.value = row.qcxDate || "";
-      qcxDate.addEventListener("input", ()=>{ row.qcxDate = qcxDate.value; qcxDate.classList.add("changed"); markDirty(); });
-
-      qcxPack.appendChild(qcxInit);
-      qcxPack.appendChild(qcxDate);
-      tdQcx.appendChild(qcxPack);
       tr.appendChild(tdQcx);
 
       // + (insert below)
@@ -970,27 +986,28 @@
       if(!finalQcxName.value.trim()){ finalQcxName.classList.add("missing"); ok=false; }
       if(!finalDate.value){ finalDate.classList.add("missing"); ok=false; }
 
-      // Handoff rows required signoffs
+      // Handoff rows required signoffs (green rows only)
       const tbody = $("tbody");
       const rowEls = Array.from(tbody.querySelectorAll("tr")).filter(tr=>tr.querySelector("td")); // includes mobile action rows but harmless
-      state.rows.forEach((r, idx)=>{
+      state.rows.forEach((r)=>{
         if(!r.handoff) return;
 
-        // find the actual main row element for this index
+        // find the actual main row element for this row number
         const mainRow = rowEls.find(tr=>{
           const td0 = tr.querySelector("td.col-num");
           return td0 && Number(td0.textContent) === r.num;
         });
         if(!mainRow) return;
 
-        const inputs = mainRow.querySelectorAll("input");
-        // order: consInit, consDate, qcxInit, qcxDate
-        const consInit = inputs[0], consDate = inputs[1], qcxInit = inputs[2], qcxDate = inputs[3];
+        const consInitEl = mainRow.querySelector("td.col-sign input.cell-init");
+        const consDateEl = mainRow.querySelector("td.col-sign input.cell-date");
+        const qcxInitEl  = mainRow.querySelector("td.col-date input.cell-init");
+        const qcxDateEl  = mainRow.querySelector("td.col-date input.cell-date");
 
-        if(!r.consInit.trim()){ consInit.classList.add("missing"); ok=false; }
-        if(!r.consDate){ consDate.classList.add("missing"); ok=false; }
-        if(!r.qcxInit.trim()){ qcxInit.classList.add("missing"); ok=false; }
-        if(!r.qcxDate){ qcxDate.classList.add("missing"); ok=false; }
+        if(!r.consInit.trim() && consInitEl){ consInitEl.classList.add("missing"); ok=false; }
+        if(!r.consDate && consDateEl){ consDateEl.classList.add("missing"); ok=false; }
+        if(!r.qcxInit.trim() && qcxInitEl){ qcxInitEl.classList.add("missing"); ok=false; }
+        if(!r.qcxDate && qcxDateEl){ qcxDateEl.classList.add("missing"); ok=false; }
       });
 
       return ok;
@@ -1096,17 +1113,28 @@
     function hydrate(data){
       // Rows
       if(Array.isArray(data.rows) && data.rows.length){
-        state.rows = data.rows.map(r=>({
-          id: r.id || crypto.randomUUID(),
-          num: Number(r.num)||0,
-          item: String(r.item ?? ""),
-          notes: String(r.notes ?? ""),
-          consInit: String(r.consInit ?? ""),
-          consDate: String(r.consDate ?? ""),
-          qcxInit: String(r.qcxInit ?? ""),
-          qcxDate: String(r.qcxDate ?? ""),
-          handoff: !!r.handoff
-        }));
+        state.rows = data.rows.map(r=>{
+          const row = ({
+            id: r.id || crypto.randomUUID(),
+            num: Number(r.num)||0,
+            item: String(r.item ?? ""),
+            notes: String(r.notes ?? ""),
+            consInit: String(r.consInit ?? ""),
+            consDate: String(r.consDate ?? ""),
+            qcxInit: String(r.qcxInit ?? ""),
+            qcxDate: String(r.qcxDate ?? ""),
+            handoff: !!r.handoff
+          });
+
+          // If older data put the single signoff into QCx for a non-handoff row,
+          // migrate it into the single (Construction) slot so it stays visible.
+          if(!row.handoff){
+            if(!row.consInit.trim() && row.qcxInit.trim()) row.consInit = row.qcxInit;
+            if(!row.consDate && row.qcxDate) row.consDate = row.qcxDate;
+          }
+
+          return row;
+        });
       } else {
         seed();
       }
@@ -1144,6 +1172,14 @@
       state.final.qcxName  = $("finalQcxName").value;
       state.final.date     = $("finalDate").value;
       state.final.notes    = $("finalNotes").value;
+
+      // Ensure non-handoff rows don't carry a second signoff (prevents hidden stale data)
+      state.rows.forEach(r=>{
+        if(!r.handoff){
+          r.qcxInit = "";
+          r.qcxDate = "";
+        }
+      });
 
       const ok = validate();
       if(!ok){
