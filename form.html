@@ -1,11 +1,11 @@
 <!-- form.html (FULL DROP-IN)
-CHANGES PER YOUR LIST:
-1) Leave button #1 alone (injected by app.js into #buttons)
-2) Leave button #2 alone (injected by app.js into #buttons)
-3) Button #3 (#rifNoProcoreBtn) is "RIF — Procore" and links to Procore URL saved by Setup
-4) Remove button #4 (Open SOP) completely
-5) Leave button #5 alone (Step Complete)
-NOTE: NO Phenolic button is added here. Phenolic stays ONLY on equipment.html bottom button.
+CHANGES:
+- STOP deleting #openSopBtn globally.
+- SOP button is now:
+    * HIDDEN by default
+    * SHOWN ONLY for Megohmmeter ids (meg / megohmmeter_line / megohmmeter_load)
+    * STILL GONE for RIF (id=rif) as required before
+Everything else preserved.
 -->
 <!doctype html>
 <html lang="en">
@@ -110,8 +110,11 @@ button.btn:empty{ display:none !important; }
 /* hidden by default; shown only when id=rif */
 #rifNoProcoreBtn{ display:none; }
 
-/* (4) SOP must be gone */
-#openSopBtn{ display:none !important; }
+/* ===== SOP button behavior =====
+   DO NOT permanently hide with !important anymore.
+   We'll control it via JS by id (meg shows, rif hidden, others hidden).
+*/
+#openSopBtn{ display:none; }
 
 /* Equipment image */
 #nexusEquipImageContainer{ text-align:center; margin: 10px 0 18px 0; }
@@ -247,11 +250,11 @@ button.btn:empty{ display:none !important; }
   <div id="buttonsWrap" class="button-panel">
     <div id="buttons"></div>
 
-    <!-- #3: Procore -->
+    <!-- #3: Procore (RIF only) -->
     <a class="btn" id="rifNoProcoreBtn" href="rif_no_procore.html">RIF — No Procore</a>
 
-    <!-- #4: Must be gone -->
-    <button class="btn" id="openSopBtn" type="button">Open SOP</button>
+    <!-- SOP (Meg only) -->
+    <button class="btn" id="openSopBtn" type="button">Megohmmeter SOP</button>
 
     <!-- #5: Leave alone -->
     <button class="btn" id="stepCompleteBtn" type="button">Mark Step Complete</button>
@@ -292,13 +295,29 @@ button.btn:empty{ display:none !important; }
   const label = document.getElementById("eqLabel");
   if (label) label.textContent = eq ? `Equipment: ${eq}` : "";
 
-  // (4) Remove Open SOP completely
+  /* ===== SOP BUTTON (Meg only) ===== */
   (function(){
     const sopBtn = document.getElementById("openSopBtn");
     if (!sopBtn) return;
+
+    const megIds = new Set(["meg","megohmmeter_line","megohmmeter_load"]);
+
+    // Hide by default for all pages
     sopBtn.style.display = "none";
-    sopBtn.setAttribute("aria-hidden","true");
-    try{ sopBtn.remove(); }catch(e){}
+    sopBtn.onclick = null;
+
+    // RIF: keep it gone (do not show)
+    if (id === "rif") return;
+
+    // Show only on Meg pages
+    if (megIds.has(id)){
+      sopBtn.style.display = "block";
+      sopBtn.textContent = "Megohmmeter SOP";
+      sopBtn.addEventListener("click", function(){
+        const url = `megohmmeter_sop.html${eq ? `?eq=${encodeURIComponent(eq)}` : ""}`;
+        location.href = url;
+      });
+    }
   })();
 
   // (3) ONLY repurpose #rifNoProcoreBtn to Procore
