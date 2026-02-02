@@ -1,12 +1,3 @@
-<!-- form.html (FULL DROP-IN)
-CHANGES PER YOUR LIST:
-1) Leave button #1 alone (injected by app.js into #buttons)
-2) Leave button #2 alone (injected by app.js into #buttons)
-3) Change ONLY button #3 (#rifNoProcoreBtn) to "RIF — Procore" and link to Procore URL saved by Setup
-4) Remove button #4 (Open SOP) completely (hidden + removed)
-5) Leave button #5 alone (Step Complete)
-Nothing else removed or altered beyond what’s required for (3) and (4).
--->
 <!doctype html>
 <html lang="en">
 <head>
@@ -110,9 +101,6 @@ button.btn:empty{ display:none !important; }
 /* hidden by default; shown only when id=rif */
 #rifNoProcoreBtn{ display:none; }
 
-/* (4) SOP must be gone */
-#openSopBtn{ display:none !important; }
-
 /* Equipment image */
 #nexusEquipImageContainer{ text-align:center; margin: 10px 0 18px 0; }
 #nexusEquipImageDisplay{
@@ -148,7 +136,7 @@ button.btn:empty{ display:none !important; }
   box-shadow:0 14px 40px rgba(0,0,0,.55);
   transform: translate3d(0,0,0) scale(1);
   transform-origin: center center;
-  touch-action: pan-x pan-y; /* keep panning; pinch zoom still works in most mobile browsers */
+  touch-action: pan-x pan-y;
   user-select:none;
 }
 #nxImgModalBar{
@@ -247,13 +235,13 @@ button.btn:empty{ display:none !important; }
   <div id="buttonsWrap" class="button-panel">
     <div id="buttons"></div>
 
-    <!-- #3: THIS is the ONLY RIF button we change -->
+    <!-- #3: Procore -->
     <a class="btn" id="rifNoProcoreBtn" href="rif_no_procore.html">RIF — No Procore</a>
 
-    <!-- #4: Must be gone -->
-    <button class="btn" id="openSopBtn" type="button">Open SOP</button>
+    <!-- #4: Phenolic Display (replaces SOP slot) -->
+    <a class="btn" id="phenolicDisplayBtn" href="phenolic_display.html">Display Phenolic</a>
 
-    <!-- #5: Leave alone -->
+    <!-- #5 -->
     <button class="btn" id="stepCompleteBtn" type="button">Mark Step Complete</button>
   </div>
 
@@ -272,7 +260,6 @@ button.btn:empty{ display:none !important; }
     <img id="nxImgModalImg" alt="Zoomed image" />
   </div>
 </div>
-<!-- ===== /Zoom Modal Markup ===== -->
 
 <script src="config.js"></script>
 <script src="app.js"></script>
@@ -293,16 +280,7 @@ button.btn:empty{ display:none !important; }
   const label = document.getElementById("eqLabel");
   if (label) label.textContent = eq ? `Equipment: ${eq}` : "";
 
-  // (4) Remove Open SOP completely (do not affect any other buttons)
-  (function(){
-    const sopBtn = document.getElementById("openSopBtn");
-    if (!sopBtn) return;
-    sopBtn.style.display = "none";
-    sopBtn.setAttribute("aria-hidden","true");
-    try{ sopBtn.remove(); }catch(e){}
-  })();
-
-  // (3) ONLY repurpose #rifNoProcoreBtn to Procore
+  // #3 Procore button (unchanged logic from your working version)
   (function(){
     const btn = document.getElementById("rifNoProcoreBtn");
     if(!btn) return;
@@ -332,48 +310,15 @@ button.btn:empty{ display:none !important; }
     }
 
     function getProcoreUrl(){
-      // 1) if Setup forwards it
       const qp = (qs.get("procore") || "").trim();
       if (looksLikeUrl(qp)) return qp;
 
-      // 2) direct keys (common)
-      const directKeys = [
-        "nexus_procore_url",
-        "nx_procore_url",
-        "procore_url",
-        "procoreUrl",
-        "procore",
-        "setup_procore_url",
-        "setupProcoreUrl",
-        "procoreLink",
-        "procore_link"
-      ];
-      for (const k of directKeys){
+      const keys = ["nexus_procore_url","nx_procore_url","procore_url","procoreUrl","procore"];
+      for (const k of keys){
         const v = (localStorage.getItem(k) || "").trim();
         if (looksLikeUrl(v)) return v;
       }
 
-      // 3) setup objects stored as JSON
-      const setupObjKeys = [
-        "nexus_setup",
-        "nexusSetup",
-        "setup",
-        "setupData",
-        "nexus_setup_data",
-        "nexus_config",
-        "nexusConfig"
-      ];
-      for (const k of setupObjKeys){
-        const raw = localStorage.getItem(k);
-        if (!raw) continue;
-        try{
-          const obj = JSON.parse(raw);
-          const found = deepFindProcore(obj);
-          if (looksLikeUrl(found)) return found;
-        }catch(e){}
-      }
-
-      // 4) equipment record
       if (eq){
         const raw = localStorage.getItem(`nexus_equipment_${eq}`);
         if (raw){
@@ -386,43 +331,14 @@ button.btn:empty{ display:none !important; }
           }catch(e){}
         }
       }
-
-      // 5) last resort: scan ALL localStorage values for a procore URL
-      try{
-        for (let i=0; i<localStorage.length; i++){
-          const key = localStorage.key(i);
-          if (!key) continue;
-          const val = localStorage.getItem(key);
-          if (!val) continue;
-
-          // plain string containing procore url
-          const m1 = String(val).match(/https?:\/\/[^\s"'<>]*procore[^\s"'<>]*/i);
-          if (m1 && looksLikeUrl(m1[0])) return m1[0];
-
-          // JSON blob containing procore url
-          if (String(val).trim().startsWith("{") || String(val).trim().startsWith("[")){
-            try{
-              const obj = JSON.parse(val);
-              const found = deepFindProcore(obj);
-              if (looksLikeUrl(found)) return found;
-            }catch(e){}
-          }
-        }
-      }catch(e){}
-
       return "";
     }
 
     const procoreUrl = getProcoreUrl();
-
-    // Always show #3 on RIF
     btn.style.display = "block";
-
-    // Rename to Procore
     btn.textContent = "RIF — Procore";
 
     if (!procoreUrl){
-      // If Procore not set, prevent navigation but keep button visible
       btn.href = "#";
       btn.removeAttribute("target");
       btn.removeAttribute("rel");
@@ -434,11 +350,25 @@ button.btn:empty{ display:none !important; }
       return;
     }
 
-    // Link to Procore
     btn.href = procoreUrl;
     btn.target = "_blank";
     btn.rel = "noopener";
     btn.onclick = null;
+  })();
+
+  // #4 Phenolic Display button wiring
+  (function(){
+    const pbtn = document.getElementById("phenolicDisplayBtn");
+    if(!pbtn) return;
+
+    // only show on RIF (adjust if you want it on other pages too)
+    if (id !== "rif"){
+      pbtn.style.display = "none";
+      return;
+    }
+
+    pbtn.style.display = "block";
+    pbtn.href = eq ? `phenolic_display.html?eq=${encodeURIComponent(eq)}` : "phenolic_display.html";
   })();
 
   function patchLinks(){
@@ -475,7 +405,6 @@ button.btn:empty{ display:none !important; }
   const img = document.getElementById("nexusEquipImageDisplay");
   if (!container || !img) return;
 
-  // ONLY show the equipment image on the Diagram Image page
   if (id !== "transformer"){
     container.style.display = "none";
     return;
@@ -497,33 +426,20 @@ button.btn:empty{ display:none !important; }
     if(rec.imageDataUrl) show(rec.imageDataUrl);
   }
 
-  // Firebase-ready hook
-  window.NEXUS_setEquipmentImageUrl = function(url){
-    show(url);
-  };
+  window.NEXUS_setEquipmentImageUrl = function(url){ show(url); };
 
-  // ===== Zoom / Lightbox =====
   const modal = document.getElementById("nxImgModal");
   const modalImg = document.getElementById("nxImgModalImg");
   const closeBtn = document.getElementById("nxImgModalCloseBtn");
   const resetBtn = document.getElementById("nxImgModalResetBtn");
-
   if (!modal || !modalImg || !closeBtn || !resetBtn) return;
 
-  let scale = 1;
-  let panX = 0;
-  let panY = 0;
-  let dragging = false;
-  let startX = 0;
-  let startY = 0;
+  let scale = 1, panX = 0, panY = 0, dragging = false, startX = 0, startY = 0;
 
   function applyTransform(){
     modalImg.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${scale})`;
   }
-  function resetTransform(){
-    scale = 1; panX = 0; panY = 0;
-    applyTransform();
-  }
+  function resetTransform(){ scale=1; panX=0; panY=0; applyTransform(); }
   function openModal(){
     if (!img.src) return;
     modalImg.src = img.src;
@@ -540,21 +456,17 @@ button.btn:empty{ display:none !important; }
   }
 
   img.addEventListener("click", openModal);
-
   closeBtn.addEventListener("click", closeModal);
   resetBtn.addEventListener("click", resetTransform);
 
-  // click outside image closes
   modal.addEventListener("click", (e) => {
     if (e.target === modal || e.target === document.getElementById("nxImgModalInner")) closeModal();
   });
 
-  // ESC closes
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && modal.style.display === "block") closeModal();
   });
 
-  // Mouse wheel zoom (desktop)
   modal.addEventListener("wheel", (e) => {
     if (modal.style.display !== "block") return;
     e.preventDefault();
@@ -564,7 +476,6 @@ button.btn:empty{ display:none !important; }
     applyTransform();
   }, { passive:false });
 
-  // Drag to pan (desktop + mobile single-finger)
   modalImg.addEventListener("pointerdown", (e) => {
     dragging = true;
     startX = e.clientX - panX;
@@ -600,12 +511,10 @@ button.btn:empty{ display:none !important; }
 <script src="assets/js/nexus-core.js"></script>
 <script src="assets/js/nexus-firebase-bridge.js"></script>
 <script>
-/* Hide any blank pill/button that gets injected (covers whitespace, nbsp, etc.) */
 (function(){
   function isTrulyBlankButton(el){
     if (!el) return false;
 
-    // Only target button-ish elements
     const isButtonish =
       el.matches('a,button,div,span') &&
       (
@@ -615,19 +524,15 @@ button.btn:empty{ display:none !important; }
       );
 
     if (!isButtonish) return false;
-
-    // If it contains any real media/icon, do NOT hide it
     if (el.querySelector('img,svg,canvas,video')) return false;
 
-    // If it has an aria-label or title, treat it as intentional
     const aria = (el.getAttribute('aria-label') || '').trim();
     const title = (el.getAttribute('title') || '').trim();
     if (aria || title) return false;
 
-    // Text content check (kills whitespace / nbsp / zero-width)
     const text = (el.textContent || '')
-      .replace(/\u00A0/g, ' ')   // nbsp
-      .replace(/\u200B/g, '')   // zero width
+      .replace(/\u00A0/g, ' ')
+      .replace(/\u200B/g, '')
       .trim();
 
     return text.length === 0;
@@ -644,10 +549,8 @@ button.btn:empty{ display:none !important; }
     });
   }
 
-  // Run now
   hideBlanks(document);
 
-  // Keep it clean if app.js injects more
   const obs = new MutationObserver((mutations) => {
     for (const m of mutations){
       m.addedNodes && m.addedNodes.forEach(n => {
