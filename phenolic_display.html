@@ -262,22 +262,25 @@
     return {};
   }
 
+  // NOTE: gravoply kept as string IDs (no leading '#')
   const PHENOLIC_CODES = {
-    bms_blue:             { label:"BLUE — BMS",                    bg:"#1b4fd6", fg:"#ffffff", gravoply:"#17353" },
-    fire_red:             { label:"RED — Fire Alarm",              bg:"#c01616", fg:"#ffffff", gravoply:"#17506" },
+    bms_blue:             { label:"BLUE — BMS",                    bg:"#1b4fd6", fg:"#ffffff", gravoply:"17353" },
+    fire_red:             { label:"RED — Fire Alarm",              bg:"#c01616", fg:"#ffffff", gravoply:"17506" },
 
-    bus_a_orange:         { label:"ORANGE — A Bus",                bg:"#f57c00", fg:"#ffffff", gravoply:"#17047" },
-    bus_b_green:          { label:"GREEN — B Bus",                 bg:"#168a3a", fg:"#ffffff", gravoply:"#17442" },
-    bus_d_cyan:           { label:"CYAN — D Bus",                  bg:"#00bcd4", fg:"#ffffff", gravoply:"#45901" },
-    bus_e_yellow_white:   { label:"YELLOW (white) — E Bus",        bg:"#ffd400", fg:"#ffffff", gravoply:"#17366" },
-    catcher_pink:         { label:"PINK — CATCHER / C Bus",        bg:"#e91e63", fg:"#ffffff", gravoply:"#32725" },
+    bus_a_orange:         { label:"ORANGE — A Bus",                bg:"#f57c00", fg:"#ffffff", gravoply:"17047" },
+    bus_b_green:          { label:"GREEN — B Bus",                 bg:"#168a3a", fg:"#ffffff", gravoply:"17442" },
+    bus_d_cyan:           { label:"CYAN — D Bus",                  bg:"#00bcd4", fg:"#ffffff", gravoply:"45901" },
+    bus_e_yellow_white:   { label:"YELLOW (white) — E Bus",        bg:"#ffd400", fg:"#ffffff", gravoply:"17366" },
+    catcher_pink:         { label:"PINK — CATCHER / C Bus",        bg:"#e91e63", fg:"#ffffff", gravoply:"32725" },
 
-    nonpod_gray:          { label:"GRAY — Non-Pod Specific",        bg:"#6f7b86", fg:"#ffffff", gravoply:"#29584" },
-    global_black:         { label:"BLACK — Global / Room",         bg:"#111111", fg:"#ffffff", gravoply:"#17319" },
-    house_brown:          { label:"BROWN — House Services",        bg:"#6b3f1a", fg:"#ffffff", gravoply:"#17388" },
+    nonpod_gray:          { label:"GRAY — Non-Pod Specific",        bg:"#6f7b86", fg:"#ffffff", gravoply:"29584" },
+    global_black:         { label:"BLACK — Global / Room",         bg:"#111111", fg:"#ffffff", gravoply:"17319" },
+    house_brown:          { label:"BROWN — House Services",        bg:"#6b3f1a", fg:"#ffffff", gravoply:"17388" },
 
-    epms_yellow_black:    { label:"YELLOW (black) — EPMS",         bg:"#ffd400", fg:"#111111", gravoply:"#17366" }
+    epms_yellow_black:    { label:"YELLOW (black) — EPMS",         bg:"#ffd400", fg:"#111111", gravoply:"17366" }
   };
+
+  function normHex(v){ return (v || "").toString().trim().toLowerCase(); }
 
   const eqPill = document.getElementById("eqPill");
   const backToEquipment = document.getElementById("backToEquipment");
@@ -315,9 +318,11 @@
 
   if (chipCode) chipCode.textContent = `Color: ${spec ? spec.label : "(not set)"}`;
   if (chipGrav) chipGrav.textContent = `Gravoply: ${spec ? spec.gravoply : "(n/a)"}`;
-  if (chipText) chipText.textContent = `Text: ${spec ? (spec.fg === "#111111" ? "BLACK" : "WHITE") : "(n/a)"}`;
+  if (chipText){
+    const fg = spec ? normHex(spec.fg) : "";
+    chipText.textContent = `Text: ${spec ? (fg === "#111111" ? "BLACK" : "WHITE") : "(n/a)"}`;
+  }
 
-  // If no eq, keep it obvious
   if (!eq){
     if (line1) line1.textContent = "FED FROM: (missing ?eq=)";
     if (line2) line2.textContent = "(missing ?eq=)";
