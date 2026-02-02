@@ -1,4 +1,11 @@
-<!-- form.html (FULL DROP-IN) — KEEP injected "RIF — No Procore (Fillable)" button and repurpose it to "RIF — Procore" linking to Setup-saved Procore URL -->
+<!-- form.html (FULL DROP-IN)
+CHANGE REQUIRED:
+- Leave the TOP 2 injected buttons exactly as-is (do not rename/retarget them).
+- Only change the LAST "RIF — No Procore" (the static anchor in this file) to:
+    label: "RIF — Procore"
+    link: Procore URL saved in Setup (query param procore first; then localStorage fallbacks)
+Nothing else removed.
+-->
 <!doctype html>
 <html lang="en">
 <head>
@@ -236,7 +243,7 @@ button.btn:empty{ display:none !important; }
   <div id="buttonsWrap" class="button-panel">
     <div id="buttons"></div>
 
-    <!-- Existing anchor (keep). We will also repurpose it if it points to rif_no_procore.html -->
+    <!-- KEEP (this is the LAST button you want repurposed) -->
     <a class="btn" id="rifNoProcoreBtn" href="rif_no_procore.html">RIF — No Procore</a>
 
     <button class="btn" id="openSopBtn" type="button">Open SOP</button>
@@ -283,14 +290,12 @@ button.btn:empty{ display:none !important; }
   function looksLikeUrl(v){
     return typeof v === "string" && /^https?:\/\//i.test(v.trim());
   }
-
   function deepFindProcoreUrl(obj){
     try{
       if (!obj || typeof obj !== "object") return "";
       for (const k in obj){
         const v = obj[k];
-        if (typeof v === "string" && looksLikeUrl(v) && /procore/i.test(v)) return v.trim();
-        if (typeof v === "string" && looksLikeUrl(v) && /procore/i.test(k)) return v.trim();
+        if (typeof v === "string" && looksLikeUrl(v) && (/procore/i.test(k) || /procore/i.test(v))) return v.trim();
         if (v && typeof v === "object"){
           const found = deepFindProcoreUrl(v);
           if (found) return found;
@@ -299,13 +304,12 @@ button.btn:empty{ display:none !important; }
     }catch(e){}
     return "";
   }
-
   function getProcoreUrl(){
-    // 1) Query string if setup forwarded it (best)
+    // 1) query param if present
     const qp = (qs.get("procore") || "").trim();
     if (looksLikeUrl(qp)) return qp;
 
-    // 2) Common direct localStorage keys
+    // 2) direct keys (adjust later to exact setup key if needed)
     const directKeys = [
       "procore","procore_url","procoreUrl",
       "nexus_procore_url","nx_procore_url",
@@ -316,7 +320,7 @@ button.btn:empty{ display:none !important; }
       if (looksLikeUrl(v)) return v;
     }
 
-    // 3) Equipment record (very likely in your system): nexus_equipment_${eq}
+    // 3) equipment record (common in your stack)
     if (eq){
       const raw = localStorage.getItem(`nexus_equipment_${eq}`);
       if (raw){
@@ -328,90 +332,41 @@ button.btn:empty{ display:none !important; }
       }
     }
 
-    // 4) Scan all localStorage values for a procore URL (last resort)
-    try{
-      for (let i=0; i<localStorage.length; i++){
-        const key = localStorage.key(i);
-        const val = localStorage.getItem(key);
-        if (!val) continue;
-
-        // direct string containing procore link
-        if (typeof val === "string" && /https?:\/\/[^\s"]*procore[^\s"]*/i.test(val)){
-          const m = val.match(/https?:\/\/[^\s"]*procore[^\s"]*/i);
-          if (m && looksLikeUrl(m[0])) return m[0];
-        }
-
-        // json string containing procore link
-        if (typeof val === "string" && (val.startsWith("{") || val.startsWith("["))){
-          try{
-            const obj = JSON.parse(val);
-            const found = deepFindProcoreUrl(obj);
-            if (looksLikeUrl(found)) return found;
-          }catch(e){}
-        }
-      }
-    }catch(e){}
-
     return "";
   }
 
-  function makeElementOpenUrl(el, url){
-    if (!el || !url) return;
-    if (el.tagName === "A"){
-      el.href = url;
-      el.target = "_blank";
-      el.rel = "noopener";
-    } else {
-      el.onclick = function(){ window.open(url, "_blank", "noopener"); };
-    }
-  }
+  /* ONLY change the LAST button (the static anchor) */
+  (function(){
+    const btn = document.getElementById("rifNoProcoreBtn");
+    if(!btn) return;
 
-  function repurposeNoProcoreButtonsToProcore(){
-    if (id !== "rif") return;
+    if (id !== "rif"){
+      btn.style.display = "none";
+      return;
+    }
 
     const procore = getProcoreUrl();
-    if (!procore) return;
-
-    const scope = document.getElementById("buttonsWrap") || document.body;
-
-    // Repurpose ANY injected element that routes to rif_no_procore.html
-    scope.querySelectorAll("a,button").forEach(el => {
-      const text = (el.textContent || "").trim();
-      const href = (el.getAttribute && el.getAttribute("href")) ? el.getAttribute("href") : "";
-      const onclick = (el.getAttribute && el.getAttribute("onclick")) ? el.getAttribute("onclick") : "";
-
-      const pointsToNoProcore =
-        /rif_no_procore\.html/i.test(href) ||
-        /rif_no_procore\.html/i.test(onclick) ||
-        /no\s*procore/i.test(text);
-
-      if (!pointsToNoProcore) return;
-
-      // keep the element; just repurpose it
-      el.textContent = "RIF — Procore";
-      makeElementOpenUrl(el, procore);
-    });
-
-    // Also ensure your static anchor is shown on RIF (optional); it will be repurposed if it matched
-    const staticBtn = document.getElementById("rifNoProcoreBtn");
-    if (staticBtn){
-      staticBtn.style.display = "block";
-      // if it didn't match above (because href got patched), force it too:
-      staticBtn.textContent = "RIF — Procore";
-      makeElementOpenUrl(staticBtn, procore);
+    if (!procore){
+      // If no procore URL exists, keep old behavior (no changes)
+      const p = new URLSearchParams();
+      if (eq) p.set("eq", eq);
+      if (rif) p.set("rif", rif);
+      btn.href = "rif_no_procore.html" + (p.toString() ? ("?" + p.toString()) : "");
+      btn.textContent = "RIF — No Procore";
+      btn.target = "";
+      btn.rel = "";
+      btn.style.display = "block";
+      return;
     }
-  }
 
-  // Run multiple times to catch late injections from app.js/config.js
-  repurposeNoProcoreButtonsToProcore();
-  setTimeout(repurposeNoProcoreButtonsToProcore, 50);
-  setTimeout(repurposeNoProcoreButtonsToProcore, 250);
-  setTimeout(repurposeNoProcoreButtonsToProcore, 750);
+    btn.textContent = "RIF — Procore";
+    btn.href = procore;
+    btn.target = "_blank";
+    btn.rel = "noopener";
+    btn.style.display = "block";
+  })();
 
-  const injectObserver = new MutationObserver(() => repurposeNoProcoreButtonsToProcore());
-  injectObserver.observe(document.getElementById("buttons") || document.body, { childList:true, subtree:true });
-
-  /* SOP button wiring (left intact; only adds the missing click behavior) */
+  /* SOP button wiring (unchanged except giving it a real click action) */
   (function(){
     const sopBtn = document.getElementById("openSopBtn");
     if (!sopBtn) return;
