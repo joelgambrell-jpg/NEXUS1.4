@@ -336,20 +336,44 @@ button.btn:empty{ display:none !important; }
       const qp = (qs.get("procore") || "").trim();
       if (looksLikeUrl(qp)) return qp;
 
-      // 2) common global keys
-      const keys = [
+      // 2) direct keys (common)
+      const directKeys = [
         "nexus_procore_url",
         "nx_procore_url",
         "procore_url",
         "procoreUrl",
-        "procore"
+        "procore",
+        "setup_procore_url",
+        "setupProcoreUrl",
+        "procoreLink",
+        "procore_link"
       ];
-      for (const k of keys){
+      for (const k of directKeys){
         const v = (localStorage.getItem(k) || "").trim();
         if (looksLikeUrl(v)) return v;
       }
 
-      // 3) equipment record
+      // 3) setup objects stored as JSON
+      const setupObjKeys = [
+        "nexus_setup",
+        "nexusSetup",
+        "setup",
+        "setupData",
+        "nexus_setup_data",
+        "nexus_config",
+        "nexusConfig"
+      ];
+      for (const k of setupObjKeys){
+        const raw = localStorage.getItem(k);
+        if (!raw) continue;
+        try{
+          const obj = JSON.parse(raw);
+          const found = deepFindProcore(obj);
+          if (looksLikeUrl(found)) return found;
+        }catch(e){}
+      }
+
+      // 4) equipment record
       if (eq){
         const raw = localStorage.getItem(`nexus_equipment_${eq}`);
         if (raw){
@@ -362,6 +386,29 @@ button.btn:empty{ display:none !important; }
           }catch(e){}
         }
       }
+
+      // 5) last resort: scan ALL localStorage values for a procore URL
+      try{
+        for (let i=0; i<localStorage.length; i++){
+          const key = localStorage.key(i);
+          if (!key) continue;
+          const val = localStorage.getItem(key);
+          if (!val) continue;
+
+          // plain string containing procore url
+          const m1 = String(val).match(/https?:\/\/[^\s"'<>]*procore[^\s"'<>]*/i);
+          if (m1 && looksLikeUrl(m1[0])) return m1[0];
+
+          // JSON blob containing procore url
+          if (String(val).trim().startsWith("{") || String(val).trim().startsWith("[")){
+            try{
+              const obj = JSON.parse(val);
+              const found = deepFindProcore(obj);
+              if (looksLikeUrl(found)) return found;
+            }catch(e){}
+          }
+        }
+      }catch(e){}
 
       return "";
     }
